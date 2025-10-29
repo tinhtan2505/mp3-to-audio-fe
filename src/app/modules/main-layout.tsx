@@ -38,7 +38,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <Layout className="h-full">
       <Sider breakpoint="lg" collapsedWidth="0" className="bg-white">
         <div className="h-16 text-white text-center font-bold text-lg flex items-center justify-center border-b">
-          TTH Menu
+          MP3 TO AUDIO
         </div>
 
         <Menu

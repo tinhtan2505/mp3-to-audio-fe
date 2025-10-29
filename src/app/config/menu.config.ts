@@ -33,4 +33,12 @@ export const MENU: AppMenuItem[] = [
       },
     ],
   },
+  {
+    key: "/dictionary",
+    label: "Dictionary",
+    icon: FolderOutlined,
+    children: [
+      { key: "/dictionary/word-list", label: "Word List", exact: true },
+    ],
+  },
 ];
