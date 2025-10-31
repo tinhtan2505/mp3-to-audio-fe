@@ -357,6 +357,19 @@ export function createApiClient(options: ApiClientOptions = {}) {
     return _request<T>("GET", slug, opts);
   }
 
+  function getId<T>(
+    slug: string,
+    id: string | number,
+    opts?: {
+      query?: Record<string, unknown>;
+      headers?: HeadersInit;
+      controller?: AbortController;
+      timeout?: number;
+    }
+  ) {
+    return _request<T>("GET", `${slug}/${id}`, opts);
+  }
+
   function post<T>(
     slug: string,
     data?:
@@ -396,6 +409,31 @@ export function createApiClient(options: ApiClientOptions = {}) {
     }
   ) {
     return _request<T>("PUT", slug, {
+      ...opts,
+      body: data,
+      retryEnabled: false,
+    });
+  }
+
+  function putId<T>(
+    slug: string,
+    id: string | number,
+    data?:
+      | JsonValue
+      | FormData
+      | URLSearchParams
+      | Blob
+      | ArrayBufferView
+      | string
+      | null,
+    opts?: {
+      query?: Record<string, unknown>;
+      headers?: HeadersInit;
+      controller?: AbortController;
+      timeout?: number;
+    }
+  ) {
+    return _request<T>("PUT", `${slug}/${id}`, {
       ...opts,
       body: data,
       retryEnabled: false,
@@ -499,6 +537,8 @@ export function createApiClient(options: ApiClientOptions = {}) {
     postMultipart,
     download,
     text,
+    getId,
+    putId,
     buildURL: (slug: string, query?: Record<string, unknown>) =>
       buildURL(baseURL, slug, query),
   };
