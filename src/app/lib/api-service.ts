@@ -510,9 +510,13 @@ export function createApiClient(options: ApiClientOptions = {}) {
       headers?: HeadersInit;
       controller?: AbortController;
       timeout?: number;
+      retryEnabled?: boolean;
     }
   ): Promise<Blob> {
-    return _request("GET", slug, { ...opts, expectBlob: true });
+    return _request("GET", slug, {
+      ...opts,
+      expectBlob: true,
+    });
   }
 
   function text(
