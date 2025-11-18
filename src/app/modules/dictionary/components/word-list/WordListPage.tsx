@@ -24,6 +24,128 @@ import {
 import { api } from "@/app/lib/apiClient";
 import { ApiResponse } from "@/app/lib/api-service";
 import ReactPlayer from "react-player";
+import {
+  Languages,
+  Sparkles,
+  Share2,
+  Gauge,
+  Clock,
+  FileAudio,
+  Wand2,
+} from "lucide-react";
+
+const languageOptions = [
+  {
+    value: "vi-VN",
+    label: "Tiếng Việt",
+    description: "Giọng Hà Nội & Sài Gòn",
+  },
+  { value: "en-US", label: "English", description: "US & UK accents" },
+  { value: "ja-JP", label: "日本語", description: "Nữ & Nam tiêu chuẩn" },
+  { value: "fr-FR", label: "Français", description: "Paris & Québec" },
+];
+
+type VoiceOption = {
+  value: string;
+  label: string;
+  description: string;
+};
+
+const voiceOptions: Record<string, VoiceOption[]> = {
+  "vi-VN": [
+    { value: "linh", label: "Linh (Nữ)", description: "Ấm áp, tự nhiên" },
+    {
+      value: "minh",
+      label: "Minh (Nam)",
+      description: "Rõ ràng, phát âm chuẩn",
+    },
+  ],
+  "en-US": [
+    { value: "ava", label: "Ava (US)", description: "Friendly, bright" },
+    { value: "oliver", label: "Oliver (UK)", description: "Warm, articulate" },
+  ],
+  "ja-JP": [
+    { value: "sakura", label: "さくら", description: "やさしい女性の声" },
+    { value: "ren", label: "れん", description: "落ち着いた男性の声" },
+  ],
+  "fr-FR": [
+    { value: "camille", label: "Camille", description: "Élégante, dynamique" },
+    { value: "antoine", label: "Antoine", description: "Clair, posé" },
+  ],
+};
+
+type Recording = {
+  id: string;
+  title: string;
+  textExcerpt: string;
+  language: string;
+  voice: string;
+  speed: number;
+  pitch: number;
+  duration: string;
+  createdAt: string;
+  shareUrl: string;
+  audioUrl: string;
+  thumbnails?: string[];
+};
+
+const mockRecordings: Recording[] = [
+  {
+    id: "rec-001",
+    title: "Giới thiệu sản phẩm - Tiếng Việt",
+    textExcerpt:
+      "Xin chào, đây là bản chào mừng đến nền tảng chuyển văn bản thành giọng nói...",
+    language: "vi-VN",
+    voice: "linh",
+    speed: 1,
+    pitch: 1,
+    duration: "00:42",
+    createdAt: "18/11/2025, 10:12",
+    shareUrl: "https://youware.ai/r/rec-001",
+    audioUrl: "https://samplelib.com/lib/preview/mp3/sample-3s.mp3",
+  },
+  {
+    id: "rec-002",
+    title: "Onboarding Flow - English",
+    textExcerpt:
+      "Welcome aboard! This narration walks you through the multi-language toolkit...",
+    language: "en-US",
+    voice: "ava",
+    speed: 0.95,
+    pitch: 1.05,
+    duration: "01:08",
+    createdAt: "17/11/2025, 17:39",
+    shareUrl: "https://youware.ai/r/rec-002",
+    audioUrl: "https://samplelib.com/lib/preview/mp3/sample-6s.mp3",
+  },
+  {
+    id: "rec-003",
+    title: "Script e-learning - Français",
+    textExcerpt:
+      "Bonjour à tous, aujourd'hui nous découvrons les bases d'une diction convaincante...",
+    language: "fr-FR",
+    voice: "camille",
+    speed: 1.1,
+    pitch: 0.9,
+    duration: "02:24",
+    createdAt: "16/11/2025, 09:05",
+    shareUrl: "https://youware.ai/r/rec-003",
+    audioUrl: "https://samplelib.com/lib/preview/mp3/sample-9s.mp3",
+  },
+];
+
+const speedMarks = [
+  { value: 0.75, label: "0.75x" },
+  { value: 1, label: "1x" },
+  { value: 1.25, label: "1.25x" },
+  { value: 1.5, label: "1.5x" },
+];
+
+const pitchMarks = [
+  { value: 0.75, label: "Trầm" },
+  { value: 1, label: "Chuẩn" },
+  { value: 1.25, label: "Cao" },
+];
 
 const VIET_VOICES = [
   { label: "Hoài My (vi-VN)", value: "vi-VN-HoaiMyNeural" },
@@ -102,7 +224,7 @@ const WordListPage: React.FC = () => {
   });
   // Thay thế cho việc quản lý URL thủ công bằng Audio
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [voice, setVoice] = useState<string | undefined>(VIET_VOICES[0].value);
+  // const [voice, setVoice] = useState<string | undefined>(VIET_VOICES[0].value);
   const [rate, setRate] = useState<number>(100);
   const [loading, setLoading] = useState(false);
 
@@ -278,175 +400,443 @@ const WordListPage: React.FC = () => {
     );
   };
 
+  const [text, setText] = useState("");
+  const [language, setLanguage] = useState(
+    languageOptions[0]?.value ?? "vi-VN"
+  );
+  const [voice, setVoice] = useState(voiceOptions[language]?.[0]?.value ?? "");
+  const [speed, setSpeed] = useState(1);
+  const [pitch, setPitch] = useState(1);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const availableVoices = useMemo(
+    () => voiceOptions[language] ?? [],
+    [language]
+  );
+
+  useEffect(() => {
+    if (!availableVoices.find((item) => item.value === voice)) {
+      setVoice(availableVoices[0]?.value ?? "");
+    }
+  }, [availableVoices, voice]);
+
+  const handleGenerate = () => {
+    if (!text.trim()) {
+      setSuccessMessage("Vui lòng nhập nội dung trước khi tạo giọng nói.");
+      return;
+    }
+
+    setIsGenerating(true);
+    setSuccessMessage(null);
+
+    // TODO: Thay simulate bằng lời gọi API thật tới backend YouWare TTS
+    window.setTimeout(() => {
+      setIsGenerating(false);
+      setSuccessMessage("Bản ghi đã được tạo. Kiểm tra danh sách bên dưới!");
+    }, 1600);
+  };
+
+  const handleShare = async (recording: Recording) => {
+    const nav = navigator as Navigator & {
+      share?: (data: ShareData) => Promise<void>;
+      clipboard?: Clipboard;
+    };
+
+    try {
+      if (nav.share) {
+        await nav.share({
+          title: recording.title,
+          text: "Nghe bản thu do YouWare TTS tạo",
+          url: recording.shareUrl,
+        });
+        setShareFeedback(`Đã mở chia sẻ cho "${recording.title}".`);
+      } else if (nav.clipboard?.writeText) {
+        await nav.clipboard.writeText(recording.shareUrl);
+        setShareFeedback(`Đã sao chép liên kết của "${recording.title}".`);
+      } else {
+        setShareFeedback("Thiết bị không hỗ trợ chia sẻ tự động.");
+      }
+    } catch (error) {
+      setShareFeedback("Không thể chia sẻ, vui lòng thử lại.");
+    }
+
+    window.setTimeout(() => setShareFeedback(null), 3200);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-cyan-100 py-10 px-4 flex justify-center">
-      <Card className="shadow-2xl rounded-3xl p-6 w-full max-w-5xl bg-white/90 backdrop-blur-sm">
-        <h1 className="text-4xl font-extrabold mb-8 text-indigo-700 text-center">
-          Chuyển đổi Văn bản thành Giọng nói (TTS)
-        </h1>
+    <div className="min-h-screen bg-slate-950 text-slate-50">
+      <div className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 opacity-60">
+          <div className="absolute -left-40 top-[-10%] h-96 w-96 rounded-full bg-sky-500/30 blur-3xl" />
+          <div className="absolute bottom-[-20%] right-[-10%] h-[28rem] w-[28rem] rounded-full bg-cyan-400/20 blur-3xl" />
+        </div>
 
-        <div className="space-y-8">
-          {/* Phần 1: Nhập văn bản */}
-          <Card
-            title="Văn bản đầu vào"
-            className="rounded-xl shadow-md"
-            styles={{
-              // <-- Sử dụng styles
-              header: {
-                // <-- Định nghĩa style cho header
-                backgroundColor: "#e0f2f1",
-                borderTopLeftRadius: "12px",
-                borderTopRightRadius: "12px",
-                fontWeight: "bold",
-                color: "#004d40",
-              },
-            }}
-          >
-            <Input.TextArea
-              rows={8}
-              value={word}
-              onChange={(e) => setWord(e.target.value)}
-              placeholder="Nhập nội dung cần đọc (hỗ trợ tiếng Việt)..."
-              className="rounded-lg shadow-inner focus:shadow-lg transition-all text-lg border-indigo-200"
-            />
-          </Card>
-
-          {/* Phần 2: Cấu hình Giọng nói */}
-          <Card
-            title="Cấu hình Giọng nói"
-            className="rounded-xl shadow-md"
-            styles={{
-              header: {
-                backgroundColor: "#e3f2fd",
-                borderTopLeftRadius: "12px",
-                borderTopRightRadius: "12px",
-                fontWeight: "bold",
-                color: "#1565c0",
-              },
-            }}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col">
-                <label className="mb-1 font-medium text-slate-600">
-                  Chọn Giọng Đọc
-                </label>
-                <Select
-                  value={voice}
-                  onChange={(v) => setVoice(v)}
-                  options={VIET_VOICES}
-                  className="w-full h-10 rounded-lg shadow"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="mb-1 font-medium text-slate-600">
-                  Tốc độ Đọc (%)
-                </label>
-                <Input
-                  type="number"
-                  min={50}
-                  max={200}
-                  suffix="%"
-                  value={rate}
-                  onChange={(e) => setRate(parseInt(e.target.value) || 100)}
-                  className="rounded-lg shadow h-10"
-                />
+        <div className="relative mx-auto flex max-w-7xl flex-col gap-16 px-6 pb-24 pt-16 lg:px-12">
+          <header className="grid gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-center">
+            <div className="space-y-6">
+              <span className="inline-flex items-center gap-2 rounded-full bg-sky-500/15 px-4 py-2 text-sm font-medium text-sky-200">
+                <Sparkles className="h-4 w-4" />
+                Text-to-Speech đa ngôn ngữ
+              </span>
+              <h1 className="text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
+                Chuyển văn bản thành giọng nói tự nhiên trong vài giây
+              </h1>
+              <p className="max-w-xl text-lg text-slate-300">
+                Tùy chỉnh ngôn ngữ, giọng đọc, tốc độ và cao độ theo kịch bản
+                của bạn. Quản lý, phát lại và chia sẻ bản ghi ngay trong một màn
+                hình trực quan.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <Languages className="mb-3 h-5 w-5 text-sky-300" />
+                  <p className="text-sm uppercase tracking-wide text-slate-400">
+                    Hỗ trợ
+                  </p>
+                  <p className="text-lg font-medium text-white">25+ ngôn ngữ</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <Gauge className="mb-3 h-5 w-5 text-sky-300" />
+                  <p className="text-sm uppercase tracking-wide text-slate-400">
+                    Kiểm soát
+                  </p>
+                  <p className="text-lg font-medium text-white">
+                    Tốc độ & Cao độ
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <Share2 className="mb-3 h-5 w-5 text-sky-300" />
+                  <p className="text-sm uppercase tracking-wide text-slate-400">
+                    Chia sẻ
+                  </p>
+                  <p className="text-lg font-medium text-white">
+                    Liên kết bảo mật
+                  </p>
+                </div>
               </div>
             </div>
-          </Card>
 
-          {/* Phần 3: Thiết lập ngắt nghỉ */}
-          <Card
-            title="Thiết lập Ngắt nghỉ Tùy chỉnh (Giây)"
-            className="rounded-xl shadow-md"
-            styles={{
-              header: {
-                backgroundColor: "#fbe9e7",
-                borderTopLeftRadius: "12px",
-                borderTopRightRadius: "12px",
-                fontWeight: "bold",
-                color: "#d84315",
-              },
-            }}
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {renderPauseInput("wordPause", "Giữa hai từ")}
-              {renderPauseInput("commaPause", "Dấu phẩy (,)")}
-              {renderPauseInput("dotPause", "Dấu chấm (.)")}
-              {renderPauseInput("semicolonPause", "Chấm phẩy (;)")}
-              {renderPauseInput("colonPause", "Hai chấm (:)")}
-              {renderPauseInput("questionPause", "Dấu hỏi (?)")}
-              {renderPauseInput("exclamationPause", "Chấm than (!)")}
-              {renderPauseInput("lineBreakPause", "Xuống dòng")}
-              {renderPauseInput("parenthesisPause", "Ngoặc đơn/kép")}
+            <div className="relative">
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-sky-500/30 via-indigo-500/20 to-transparent blur-3xl" />
+              <div className="relative rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl shadow-2xl">
+                <h2 className="mb-4 text-xl font-semibold text-white">
+                  Bảng điều khiển nhanh
+                </h2>
+                <div className="space-y-4 text-sm text-slate-200">
+                  <p className="flex items-center justify-between">
+                    <span>Ngôn ngữ đang chọn</span>
+                    <strong className="text-white">
+                      {languageOptions.find((item) => item.value === language)
+                        ?.label ?? ""}
+                    </strong>
+                  </p>
+                  <p className="flex items-center justify-between">
+                    <span>Giọng</span>
+                    <strong className="text-white">
+                      {availableVoices.find((item) => item.value === voice)
+                        ?.label ?? "Tùy chỉnh"}
+                    </strong>
+                  </p>
+                  <p className="flex items-center justify-between">
+                    <span>Tốc độ</span>
+                    <strong className="text-white">{speed.toFixed(2)}x</strong>
+                  </p>
+                  <p className="flex items-center justify-between">
+                    <span>Cao độ</span>
+                    <strong className="text-white">{pitch.toFixed(2)}</strong>
+                  </p>
+                  <div className="mt-6 rounded-2xl bg-slate-900/60 p-4">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">
+                      Gợi ý
+                    </p>
+                    <p className="mt-2 text-sm text-slate-200">
+                      Kết nối API ngay sau khi nội dung được duyệt để đồng bộ
+                      bản ghi với backend YouWare.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <p className="mt-4 text-xs text-red-500 italic">
-              * Thời gian ngắt nghỉ tính bằng giây. Giá trị mặc định là tốt nhất
-              cho đa số trường hợp.
-            </p>
-          </Card>
+          </header>
 
-          {/* Phần 4: Điều khiển & Phát */}
-          <div className="flex flex-col items-center gap-4 pt-4">
-            <div className="flex justify-center gap-4">
-              <Button
-                type="primary"
-                size="large"
-                className="px-10 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all h-12 flex items-center justify-center"
-                onClick={handlePlay}
-                disabled={disabled}
-                icon={loading ? <LoadingOutlined /> : <PlayCircleOutlined />}
-              >
-                {loading ? "Đang tạo..." : "Tạo và Phát"}
-              </Button>
-              <Button
-                size="large"
-                className="px-10 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all h-12 flex items-center justify-center"
-                onClick={handleDownload}
-                disabled={!audioUrl || loading}
-                icon={<DownloadOutlined />}
-              >
-                Tải xuống MP3
-              </Button>
-              <Button
-                size="large"
-                className="px-10 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all h-12 flex items-center justify-center"
-                onClick={handleInsertData} // Đã thay đổi
-                icon={<PlusOutlined />} // Đã thay đổi
-              >
-                Thêm dữ liệu
-              </Button>
-            </div>
+          <section className="grid gap-10 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1.2fr)]">
+            <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-2xl backdrop-blur-xl">
+              <div className="mb-8 flex items-center gap-3">
+                <Wand2 className="h-5 w-5 text-sky-300" />
+                <div>
+                  <h2 className="text-xl font-semibold text-white">
+                    Tạo giọng nói mới
+                  </h2>
+                  <p className="text-sm text-slate-400">
+                    Nhập văn bản, chọn tham số và bấm tạo. Hệ thống sẽ lưu bản
+                    ghi vào danh sách bên phải.
+                  </p>
+                </div>
+              </div>
 
-            {/* TÍCH HỢP REACTPLAYER MỚI */}
-            <div className="w-full max-w-4xl mt-6">
-              {audioUrl ? (
-                <ReactPlayer
-                  src={audioUrl}
-                  playing={playing}
-                  controls={true}
-                  onEnded={handleAudioEnd}
-                  width="100%"
-                  height="50px"
-                  className="rounded-xl overflow-hidden shadow-2xl"
+              <label className="mb-6 block">
+                <span className="mb-2 block text-sm font-medium text-slate-300">
+                  Nội dung
+                </span>
+                <textarea
+                  value={text}
+                  onChange={(event) => setText(event.target.value)}
+                  rows={6}
+                  className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-base text-white placeholder:text-slate-500 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                  placeholder="Nhập hoặc dán kịch bản bạn muốn chuyển thành giọng nói..."
                 />
-              ) : (
-                <div className="p-4 bg-slate-200 rounded-xl text-center text-slate-500 shadow-inner">
-                  {loading ? (
-                    <Spin
-                      indicator={
-                        <LoadingOutlined style={{ fontSize: 24 }} spin />
-                      }
-                    />
-                  ) : (
-                    'Nhấn "Tạo và Phát" để tạo file âm thanh.'
-                  )}
+              </label>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-300">
+                    Ngôn ngữ
+                  </span>
+                  <select
+                    value={language}
+                    onChange={(event) => setLanguage(event.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                  >
+                    {languageOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label} · {option.description}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-300">
+                    Giọng đọc
+                  </span>
+                  <select
+                    value={voice}
+                    onChange={(event) => setVoice(event.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                  >
+                    {availableVoices.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label} · {option.description}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="mt-6 grid gap-6 md:grid-cols-2">
+                <div>
+                  <div className="flex items-center justify-between text-sm text-slate-300">
+                    <span>Tốc độ đọc</span>
+                    <span className="font-medium text-sky-200">
+                      {speed.toFixed(2)}x
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.75"
+                    max="1.5"
+                    step="0.05"
+                    value={speed}
+                    onChange={(event) =>
+                      setSpeed(parseFloat(event.target.value))
+                    }
+                    className="mt-3 w-full accent-sky-400"
+                  />
+                  <div className="mt-2 flex justify-between text-xs text-slate-500">
+                    {speedMarks.map((mark) => (
+                      <span key={mark.value}>{mark.label}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-sm text-slate-300">
+                    <span>Cao độ</span>
+                    <span className="font-medium text-sky-200">
+                      {pitch.toFixed(2)}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.75"
+                    max="1.3"
+                    step="0.05"
+                    value={pitch}
+                    onChange={(event) =>
+                      setPitch(parseFloat(event.target.value))
+                    }
+                    className="mt-3 w-full accent-sky-400"
+                  />
+                  <div className="mt-2 flex justify-between text-xs text-slate-500">
+                    {pitchMarks.map((mark) => (
+                      <span key={mark.value}>{mark.label}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  onClick={handleGenerate}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-500 px-6 py-3 text-base font-semibold text-slate-950 transition hover:bg-sky-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? "Đang tạo..." : "Tạo giọng nói"}
+                </button>
+                <p className="text-sm text-slate-400">
+                  Xuất file MP3/WAV · Sẵn sàng cho ứng dụng web của bạn
+                </p>
+              </div>
+
+              {successMessage && (
+                <div className="mt-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                  {successMessage}
                 </div>
               )}
             </div>
-            {/* KẾT THÚC TÍCH HỢP REACTPLAYER */}
-          </div>
+
+            <aside className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-white">
+                    Bản ghi gần đây
+                  </h2>
+                  <p className="text-sm text-slate-400">
+                    Phát lại, tải xuống và chia sẻ trực tiếp từ thư viện.
+                  </p>
+                </div>
+                <Clock className="h-5 w-5 text-sky-200" />
+              </div>
+
+              {shareFeedback && (
+                <div className="mb-4 rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
+                  {shareFeedback}
+                </div>
+              )}
+
+              <div className="space-y-5">
+                {mockRecordings.map((recording) => (
+                  <article
+                    key={recording.id}
+                    className="group rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-inner transition hover:border-sky-400/60"
+                  >
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-lg font-semibold text-white">
+                            {recording.title}
+                          </h3>
+                          <p className="mt-1 line-clamp-2 text-sm text-slate-400">
+                            {recording.textExcerpt}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-200">
+                          {recording.duration}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-3 text-xs uppercase tracking-wide text-slate-400">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1">
+                          <Languages className="h-3.5 w-3.5 text-sky-300" />
+                          {languageOptions.find(
+                            (item) => item.value === recording.language
+                          )?.label ?? recording.language}
+                        </span>
+                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1">
+                          <FileAudio className="h-3.5 w-3.5 text-sky-300" />
+                          {voiceOptions[recording.language]?.find(
+                            (item) => item.value === recording.voice
+                          )?.label ?? recording.voice}
+                        </span>
+                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1">
+                          <Gauge className="h-3.5 w-3.5 text-sky-300" />
+                          {recording.speed}x · Pitch {recording.pitch}
+                        </span>
+                      </div>
+
+                      <div className="rounded-2xl border border-white/10 bg-black/40 p-3">
+                        <ReactPlayer
+                          // url={recording.audioUrl}
+                          controls
+                          width="100%"
+                          height="48px"
+                          playing={false}
+                          // config={{ file: { forceAudio: true } }}
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                        <p className="text-slate-400">
+                          Tạo lúc {recording.createdAt}
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <a
+                            href={recording.shareUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-full border border-white/10 px-4 py-2 text-slate-200 transition hover:border-sky-400/60 hover:text-sky-200"
+                          >
+                            Mở liên kết
+                          </a>
+                          <button
+                            onClick={() => handleShare(recording)}
+                            className="inline-flex items-center gap-2 rounded-full bg-sky-500/90 px-4 py-2 font-medium text-slate-950 transition hover:bg-sky-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                          >
+                            <Share2 className="h-4 w-4" />
+                            Chia sẻ
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </aside>
+          </section>
+
+          <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-8 backdrop-blur-xl">
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+                  Tích hợp nhanh chóng
+                </h3>
+                <p className="mt-3 text-base text-slate-200">
+                  Nhúng API REST hoặc SDK vào ứng dụng Next.js/React chỉ với vài
+                  dòng cấu hình. Hỗ trợ token bảo mật và quota linh hoạt.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+                  Quy trình cộng tác
+                </h3>
+                <p className="mt-3 text-base text-slate-200">
+                  Mời biên tập viên vào workspace, phân quyền tải xuống, tái tạo
+                  bản ghi và quản lý phiên bản dễ dàng.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+                  Hỗ trợ đa nền tảng
+                </h3>
+                <p className="mt-3 text-base text-slate-200">
+                  Các bản ghi tương thích với web, mobile, thiết bị nhúng và có
+                  thể đẩy thẳng lên LMS hoặc hệ thống trợ lý ảo.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+                  Chính sách bảo mật
+                </h3>
+                <p className="mt-3 text-base text-slate-200">
+                  Dữ liệu văn bản và bản ghi được mã hóa, có nhật ký truy cập và
+                  cơ chế xóa an toàn theo yêu cầu.
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
