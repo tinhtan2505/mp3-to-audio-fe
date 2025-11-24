@@ -177,6 +177,13 @@ const WordListPage: React.FC = () => {
   //   );
   //   console.log(patients);
   // };
+  const handleInsertViettelData = async () => {
+    const patients = await api.post<{ items: unknown[]; total: number }>(
+      // '/api/tts/vi/insert-words'
+      '/api/tts/vi/speech-synthesis'
+    );
+    console.log(patients);
+  };
   const handleInsertData = async () => {
     const patients = await api.post<{ items: unknown[]; total: number }>(
       '/api/tts/vi/insert-words'
@@ -184,7 +191,9 @@ const WordListPage: React.FC = () => {
     console.log(patients);
   };
 
-  const [word, setWord] = useState('Ba về nhà sẽ tới bể nước đã đổ đầy rồi');
+  const [word, setWord] = useState(
+    'Ba am hiểu về nhà sẽ tới bể nước đã đổ đầy rồi'
+  );
   const [config, setConfig] = useState<PauseConfig>({
     wordPause: DEFAULT_PAUSES.word,
     dotPause: DEFAULT_PAUSES.dot,
@@ -674,6 +683,12 @@ const WordListPage: React.FC = () => {
                   disabled={isGenerating}
                 >
                   {isGenerating ? 'Đang tạo...' : 'Tạo giọng nói'}
+                </button>
+                <button
+                  onClick={handleInsertViettelData}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3 text-base font-semibold text-white transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                >
+                  VIETTEL
                 </button>
                 <button
                   onClick={handleInsertData}
