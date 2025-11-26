@@ -180,7 +180,7 @@ const WordListPage: React.FC = () => {
   const handleInsertViettelData = async () => {
     const patients = await api.post<{ items: unknown[]; total: number }>(
       // '/api/tts/vi/insert-words'
-      '/api/tts/vi/speech-synthesis'
+      '/api/words/vi/speech-synthesis'
     );
     console.log(patients);
   };
@@ -192,7 +192,7 @@ const WordListPage: React.FC = () => {
   };
 
   const [word, setWord] = useState(
-    'Ba am hiểu về nhà sẽ tới bể nước đã đổ đầy rồi'
+    'Đại Khư Tàn Lão Thôn, một đứa bé được những người già nhặt được ở bờ sông, đặt tên Tần Mục, tân tân khổ khổ nuôi hắn trưởng thành. Một ngày kia bóng đem buông xuống, bóng tối bao trùm Đại Khư, Tần Mục bước ra khỏi nhà'
   );
   const [config, setConfig] = useState<PauseConfig>({
     wordPause: DEFAULT_PAUSES.word,
@@ -262,7 +262,7 @@ const WordListPage: React.FC = () => {
 
     try {
       const resp = await api.post(
-        '/api/tts/vi/text-to-mp3',
+        '/api/tts-ai/vi/text-to-speech',
         {
           word: word,
           pauses: {
