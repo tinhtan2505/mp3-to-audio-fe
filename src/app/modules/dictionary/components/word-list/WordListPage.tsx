@@ -192,7 +192,7 @@ const WordListPage: React.FC = () => {
   };
 
   const [word, setWord] = useState(
-    'Đại Khư Tàn Lão Thôn, một đứa bé được những người già nhặt được ở bờ sông, đặt tên Tần Mục, tân tân khổ khổ nuôi hắn trưởng thành. Một ngày kia bóng đem buông xuống, bóng tối bao trùm Đại Khư, Tần Mục bước ra khỏi nhà'
+    'Đại Khư Tàn Lão Thôn, một đứa bé được những người già nhặt được ở bờ sông, đặt tên Tần Mục, tân tân khổ khổ nuôi hắn trưởng thành. Một ngày kia bóng đêm buông xuống, bóng tối bao trùm Đại Khư, Tần Mục bước ra khỏi nhà'
   );
   const [config, setConfig] = useState<PauseConfig>({
     wordPause: DEFAULT_PAUSES.word,
