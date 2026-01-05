@@ -41,4 +41,9 @@ export const MENU: AppMenuItem[] = [
       { key: "/dictionary/word-list", label: "Word List", exact: true },
     ],
   },
+  {
+    key: "/dubbing",
+    label: "Dubbing",
+    icon: FolderOutlined,
+  },
 ];

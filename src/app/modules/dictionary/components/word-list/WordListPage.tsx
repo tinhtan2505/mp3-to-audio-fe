@@ -1,10 +1,10 @@
-'use client';
-import { Input, message, notification, Spin } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ExclamationCircleOutlined, LoadingOutlined } from '@ant-design/icons';
-import { api } from '@/app/lib/apiClient';
-import { ApiError, ApiResponse } from '@/app/lib/api-service';
-import ReactPlayer from 'react-player';
+"use client";
+import { Input, message, notification, Spin } from "antd";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ExclamationCircleOutlined, LoadingOutlined } from "@ant-design/icons";
+import { api } from "@/app/lib/apiClient";
+import { ApiError, ApiResponse } from "@/app/lib/api-service";
+import ReactPlayer from "react-player";
 import {
   Languages,
   Sparkles,
@@ -13,17 +13,17 @@ import {
   Clock,
   FileAudio,
   Wand2,
-} from 'lucide-react';
+} from "lucide-react";
 
 const languageOptions = [
   {
-    value: 'vi-VN',
-    label: 'Tiếng Việt',
-    description: 'Giọng Hà Nội & Sài Gòn',
+    value: "vi-VN",
+    label: "Tiếng Việt",
+    description: "Giọng Hà Nội & Sài Gòn",
   },
-  { value: 'en-US', label: 'English', description: 'US & UK accents' },
-  { value: 'ja-JP', label: '日本語', description: 'Nữ & Nam tiêu chuẩn' },
-  { value: 'fr-FR', label: 'Français', description: 'Paris & Québec' },
+  { value: "en-US", label: "English", description: "US & UK accents" },
+  { value: "ja-JP", label: "日本語", description: "Nữ & Nam tiêu chuẩn" },
+  { value: "fr-FR", label: "Français", description: "Paris & Québec" },
 ];
 
 type VoiceOption = {
@@ -33,25 +33,25 @@ type VoiceOption = {
 };
 
 const voiceOptions: Record<string, VoiceOption[]> = {
-  'vi-VN': [
-    { value: 'linh', label: 'Linh (Nữ)', description: 'Ấm áp, tự nhiên' },
+  "vi-VN": [
+    { value: "linh", label: "Linh (Nữ)", description: "Ấm áp, tự nhiên" },
     {
-      value: 'minh',
-      label: 'Minh (Nam)',
-      description: 'Rõ ràng, phát âm chuẩn',
+      value: "minh",
+      label: "Minh (Nam)",
+      description: "Rõ ràng, phát âm chuẩn",
     },
   ],
-  'en-US': [
-    { value: 'ava', label: 'Ava (US)', description: 'Friendly, bright' },
-    { value: 'oliver', label: 'Oliver (UK)', description: 'Warm, articulate' },
+  "en-US": [
+    { value: "ava", label: "Ava (US)", description: "Friendly, bright" },
+    { value: "oliver", label: "Oliver (UK)", description: "Warm, articulate" },
   ],
-  'ja-JP': [
-    { value: 'sakura', label: 'さくら', description: 'やさしい女性の声' },
-    { value: 'ren', label: 'れん', description: '落ち着いた男性の声' },
+  "ja-JP": [
+    { value: "sakura", label: "さくら", description: "やさしい女性の声" },
+    { value: "ren", label: "れん", description: "落ち着いた男性の声" },
   ],
-  'fr-FR': [
-    { value: 'camille', label: 'Camille', description: 'Élégante, dynamique' },
-    { value: 'antoine', label: 'Antoine', description: 'Clair, posé' },
+  "fr-FR": [
+    { value: "camille", label: "Camille", description: "Élégante, dynamique" },
+    { value: "antoine", label: "Antoine", description: "Clair, posé" },
   ],
 };
 
@@ -72,18 +72,18 @@ type Recording = {
 
 const mockRecordings: Recording[] = [
   {
-    id: 'rec-001',
-    title: 'Giới thiệu sản phẩm - Tiếng Việt',
+    id: "rec-001",
+    title: "Giới thiệu sản phẩm - Tiếng Việt",
     textExcerpt:
-      'Xin chào, đây là bản chào mừng đến nền tảng chuyển văn bản thành giọng nói...',
-    language: 'vi-VN',
-    voice: 'linh',
+      "Xin chào, đây là bản chào mừng đến nền tảng chuyển văn bản thành giọng nói...",
+    language: "vi-VN",
+    voice: "linh",
     speed: 1,
     pitch: 1,
-    duration: '00:42',
-    createdAt: '18/11/2025, 10:12',
-    shareUrl: 'https://youware.ai/r/rec-001',
-    audioUrl: 'https://samplelib.com/lib/preview/mp3/sample-3s.mp3',
+    duration: "00:42",
+    createdAt: "18/11/2025, 10:12",
+    shareUrl: "https://youware.ai/r/rec-001",
+    audioUrl: "https://samplelib.com/lib/preview/mp3/sample-3s.mp3",
   },
   // {
   //   id: 'rec-002',
@@ -116,16 +116,16 @@ const mockRecordings: Recording[] = [
 ];
 
 const speedMarks = [
-  { value: 0.75, label: '0.75x' },
-  { value: 1, label: '1x' },
-  { value: 1.25, label: '1.25x' },
-  { value: 1.5, label: '1.5x' },
+  { value: 0.75, label: "0.75x" },
+  { value: 1, label: "1x" },
+  { value: 1.25, label: "1.25x" },
+  { value: 1.5, label: "1.5x" },
 ];
 
 const pitchMarks = [
-  { value: 0.75, label: 'Trầm' },
-  { value: 1, label: 'Chuẩn' },
-  { value: 1.25, label: 'Cao' },
+  { value: 0.75, label: "Trầm" },
+  { value: 1, label: "Chuẩn" },
+  { value: 1.25, label: "Cao" },
 ];
 
 const DEFAULT_PAUSES = {
@@ -160,13 +160,13 @@ interface AudioResult {
 
 function isApiResponse<T = string>(v: unknown): v is ApiResponse<T> {
   return (
-    !!v && typeof v === 'object' && 'result' in (v as Record<string, unknown>)
+    !!v && typeof v === "object" && "result" in (v as Record<string, unknown>)
   );
 }
 
 function hasDataField<T = string>(v: unknown): v is { data: ApiResponse<T> } {
   return (
-    !!v && typeof v === 'object' && 'data' in (v as Record<string, unknown>)
+    !!v && typeof v === "object" && "data" in (v as Record<string, unknown>)
   );
 }
 
@@ -180,19 +180,19 @@ const WordListPage: React.FC = () => {
   const handleInsertViettelData = async () => {
     const patients = await api.post<{ items: unknown[]; total: number }>(
       // '/api/tts/vi/insert-words'
-      '/api/words/vi/speech-synthesis'
+      "/api/words/vi/speech-synthesis"
     );
     console.log(patients);
   };
   const handleInsertData = async () => {
     const patients = await api.post<{ items: unknown[]; total: number }>(
-      '/api/tts/vi/insert-words'
+      "/api/tts/vi/insert-words"
     );
     console.log(patients);
   };
 
   const [word, setWord] = useState(
-    'Đại Khư Tàn Lão Thôn, một đứa bé được những người già nhặt được ở bờ sông, đặt tên Tần Mục, tân tân khổ khổ nuôi hắn trưởng thành. Một ngày kia bóng đêm buông xuống, bóng tối bao trùm Đại Khư, Tần Mục bước ra khỏi nhà'
+    "Đại Khư Tàn Lão Thôn, một đứa bé được những người già nhặt được ở bờ sông, đặt tên Tần Mục, tân tân khổ khổ nuôi hắn trưởng thành. Một ngày kia bóng đêm buông xuống, bóng tối bao trùm Đại Khư, Tần Mục bước ra khỏi nhà"
   );
   const [config, setConfig] = useState<PauseConfig>({
     wordPause: DEFAULT_PAUSES.word,
@@ -232,8 +232,8 @@ const WordListPage: React.FC = () => {
     };
   }, [audioUrl]);
 
-  function base64ToBlob(base64: string, mime = 'audio/mpeg'): Blob {
-    const cleaned = base64.replace(/^data:.*;base64,/, '');
+  function base64ToBlob(base64: string, mime = "audio/mpeg"): Blob {
+    const cleaned = base64.replace(/^data:.*;base64,/, "");
     const chunkSize = 0x8000;
     const byteChars = atob(cleaned);
     const parts: ArrayBuffer[] = [];
@@ -252,7 +252,7 @@ const WordListPage: React.FC = () => {
   const handleAudioEnd = () => {
     // Tắt cờ playing và thông báo khi ReactPlayer kết thúc phát
     setPlaying(false);
-    message.success('Phát âm hoàn tất 🎉');
+    message.success("Phát âm hoàn tất 🎉");
   };
 
   const handlePlay = async () => {
@@ -262,21 +262,22 @@ const WordListPage: React.FC = () => {
 
     try {
       const resp = await api.post(
-        '/api/tts-ai/vi/text-to-speech',
-        {
-          word: word,
-          pauses: {
-            wordPause: config.wordPause,
-            dotPause: config.dotPause,
-            commaPause: config.commaPause,
-            semicolonPause: config.semicolonPause,
-            colonPause: config.colonPause,
-            questionPause: config.questionPause,
-            exclamationPause: config.exclamationPause,
-            lineBreakPause: config.lineBreakPause,
-            parenthesisPause: config.parenthesisPause,
-          },
-        },
+        "/api/dubbing/vi/dubbing-whisper",
+        { inputPath: "D:\\Dubbing\\pmh_vocals.wav" },
+        // {
+        //   word: word,
+        //   pauses: {
+        //     wordPause: config.wordPause,
+        //     dotPause: config.dotPause,
+        //     commaPause: config.commaPause,
+        //     semicolonPause: config.semicolonPause,
+        //     colonPause: config.colonPause,
+        //     questionPause: config.questionPause,
+        //     exclamationPause: config.exclamationPause,
+        //     lineBreakPause: config.lineBreakPause,
+        //     parenthesisPause: config.parenthesisPause,
+        //   },
+        // },
         { retryEnabled: false }
       );
 
@@ -287,8 +288,8 @@ const WordListPage: React.FC = () => {
       } else if (hasDataField<AudioResult>(resp)) {
         data = resp.data;
       } else {
-        message.error('Server trả về định dạng không hợp lệ');
-        console.error('Unexpected response shape:', resp);
+        message.error("Server trả về định dạng không hợp lệ");
+        console.error("Unexpected response shape:", resp);
         return;
       }
 
@@ -305,42 +306,42 @@ const WordListPage: React.FC = () => {
 
       if (notFoundWords.length > 0) {
         notification.open({
-          message: 'Từ chưa có trong cơ sở dữ liệu',
-          description: `Không tìm thấy từ: ${notFoundWords.join(', ')}`,
-          placement: 'bottomRight',
+          message: "Từ chưa có trong cơ sở dữ liệu",
+          description: `Không tìm thấy từ: ${notFoundWords.join(", ")}`,
+          placement: "bottomRight",
           duration: 0,
-          icon: <ExclamationCircleOutlined style={{ color: '#000' }} />,
+          icon: <ExclamationCircleOutlined style={{ color: "#000" }} />,
           style: {
-            border: '1px solid red',
-            borderRadius: '8px',
+            border: "1px solid red",
+            borderRadius: "8px",
           },
         });
       }
 
       if (!base64) {
-        message.error('Không nhận được audio từ server');
+        message.error("Không nhận được audio từ server");
         setIsGenerating(false);
         return;
       }
 
-      const blob = base64ToBlob(base64, 'audio/mpeg');
+      const blob = base64ToBlob(base64, "audio/mpeg");
       const url = URL.createObjectURL(blob);
       console.log(url);
 
       setAudioUrl(url);
       setPlaying(true);
-      message.success('Đang tải và phát âm thanh...');
+      message.success("Đang tải và phát âm thanh...");
     } catch (error) {
-      console.error('Lỗi khi gọi API:', error);
+      console.error("Lỗi khi gọi API:", error);
 
       if (error instanceof ApiError) {
         let errorMessage = `Lỗi [${error.status}]`;
 
-        if (error.data && typeof error.data === 'object') {
+        if (error.data && typeof error.data === "object") {
           const serverMessage = error.data?.message;
           if (serverMessage) {
             errorMessage = serverMessage;
-          } else if (typeof error.data === 'string') {
+          } else if (typeof error.data === "string") {
             errorMessage = error.data;
           }
         } else if (error.message) {
@@ -349,12 +350,12 @@ const WordListPage: React.FC = () => {
 
         message.error(`Yêu cầu thất bại: ${errorMessage}`);
 
-        if (error.status === 401 && error.message.includes('Token')) {
-          message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        if (error.status === 401 && error.message.includes("Token")) {
+          message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
         }
       } else {
         message.error(
-          'Đã xảy ra lỗi không xác định. Vui lòng kiểm tra console.'
+          "Đã xảy ra lỗi không xác định. Vui lòng kiểm tra console."
         );
       }
     } finally {
@@ -364,18 +365,18 @@ const WordListPage: React.FC = () => {
 
   const handleDownload = () => {
     if (!audioUrl) {
-      message.warning('Vui lòng tạo âm thanh trước khi tải xuống.');
+      message.warning("Vui lòng tạo âm thanh trước khi tải xuống.");
       return;
     }
 
     // Tạo một thẻ <a> ẩn để kích hoạt tải xuống
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = audioUrl;
     link.download = `tts-audio-${Date.now()}.mp3`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    message.info('Đang bắt đầu tải xuống file MP3.');
+    message.info("Đang bắt đầu tải xuống file MP3.");
   };
 
   const renderPauseInput = (key: keyof PauseConfig, label: string) => {
@@ -406,9 +407,9 @@ const WordListPage: React.FC = () => {
   };
 
   const [language, setLanguage] = useState(
-    languageOptions[0]?.value ?? 'vi-VN'
+    languageOptions[0]?.value ?? "vi-VN"
   );
-  const [voice, setVoice] = useState(voiceOptions[language]?.[0]?.value ?? '');
+  const [voice, setVoice] = useState(voiceOptions[language]?.[0]?.value ?? "");
   const [speed, setSpeed] = useState(1);
   const [pitch, setPitch] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -422,13 +423,13 @@ const WordListPage: React.FC = () => {
 
   useEffect(() => {
     if (!availableVoices.find((item) => item.value === voice)) {
-      setVoice(availableVoices[0]?.value ?? '');
+      setVoice(availableVoices[0]?.value ?? "");
     }
   }, [availableVoices, voice]);
 
   const handleGenerate = () => {
     if (!word.trim()) {
-      setSuccessMessage('Vui lòng nhập nội dung trước khi tạo giọng nói.');
+      setSuccessMessage("Vui lòng nhập nội dung trước khi tạo giọng nói.");
       return;
     }
 
@@ -448,7 +449,7 @@ const WordListPage: React.FC = () => {
       if (nav.share) {
         await nav.share({
           title: recording.title,
-          text: 'Nghe bản thu do YouWare TTS tạo',
+          text: "Nghe bản thu do YouWare TTS tạo",
           url: recording.shareUrl,
         });
         setShareFeedback(`Đã mở chia sẻ cho "${recording.title}".`);
@@ -456,10 +457,10 @@ const WordListPage: React.FC = () => {
         await nav.clipboard.writeText(recording.shareUrl);
         setShareFeedback(`Đã sao chép liên kết của "${recording.title}".`);
       } else {
-        setShareFeedback('Thiết bị không hỗ trợ chia sẻ tự động.');
+        setShareFeedback("Thiết bị không hỗ trợ chia sẻ tự động.");
       }
     } catch (error) {
-      setShareFeedback('Không thể chia sẻ, vui lòng thử lại.');
+      setShareFeedback("Không thể chia sẻ, vui lòng thử lại.");
     }
 
     window.setTimeout(() => setShareFeedback(null), 3200);
@@ -528,14 +529,14 @@ const WordListPage: React.FC = () => {
                     <span>Ngôn ngữ đang chọn</span>
                     <strong className="text-white">
                       {languageOptions.find((item) => item.value === language)
-                        ?.label ?? ''}
+                        ?.label ?? ""}
                     </strong>
                   </p>
                   <p className="flex items-center justify-between">
                     <span>Giọng</span>
                     <strong className="text-white">
                       {availableVoices.find((item) => item.value === voice)
-                        ?.label ?? 'Tùy chỉnh'}
+                        ?.label ?? "Tùy chỉnh"}
                     </strong>
                   </p>
                   <p className="flex items-center justify-between">
@@ -682,7 +683,7 @@ const WordListPage: React.FC = () => {
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-500 px-6 py-3 text-base font-semibold text-slate-950 transition hover:bg-sky-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                   disabled={isGenerating}
                 >
-                  {isGenerating ? 'Đang tạo...' : 'Tạo giọng nói'}
+                  {isGenerating ? "Đang tạo..." : "Tạo giọng nói"}
                 </button>
                 <button
                   onClick={handleInsertViettelData}
