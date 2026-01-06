@@ -4,11 +4,10 @@ import { api } from '@/app/lib/apiClient';
 
 const DubbingPage: React.FC = () => {
   // --- STATE CHO WHISPER TOOL ---
-  const [inputPath, setInputPath] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [inputPath, setInputPath] = useState('D:\\Dubbing\\pmh_vocals.wav');
 
   // --- STATE CHO MAKE AUDIO TOOL ---
-  const [makeAudioPath, setMakeAudioPath] = useState('');
+  const [makeAudioPath, setMakeAudioPath] = useState('D:\\Dubbing\\pmh_vi.srt');
 
   // --- STATE CHO MERGE VIDEO TOOL (MỚI) ---
   const [mixVideoPath, setMixVideoPath] = useState(
@@ -24,17 +23,6 @@ const DubbingPage: React.FC = () => {
     'idle' | 'loading' | 'success' | 'error'
   >('idle');
   const [message, setMessage] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      // Khi chọn file thì clear đường dẫn nhập tay để tránh nhầm lẫn
-      setInputPath('');
-      setMessage(`Đã chọn: ${file.name}`);
-    }
-  };
 
   const handleProcessWhisper = async () => {
     if (inputPath.trim()) {
