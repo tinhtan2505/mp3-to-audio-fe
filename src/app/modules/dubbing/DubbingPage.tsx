@@ -10,15 +10,11 @@ const DubbingPage: React.FC = () => {
   const [makeAudioPath, setMakeAudioPath] = useState('D:\\Dubbing\\pmh_vi.srt');
 
   // --- STATE CHO MERGE VIDEO TOOL (MỚI) ---
-  const [mixVideoPath, setMixVideoPath] = useState(
-    'D:\\Dubbing\\pmh_video_cn.mp4'
-  ); // Video gốc (hình)
+  const [mixVideoPath, setMixVideoPath] = useState('D:\\Dubbing\\video_cn.mp4'); // Video gốc (hình)
   const [mixInstrumentalPath, setMixInstrumentalPath] = useState(
-    'D:\\Dubbing\\pmh_instrumental.wav'
+    'D:\\Dubbing\\instrumental.wav'
   ); // Nhạc nền
-  const [mixVoicePath, setMixVoicePath] = useState(
-    'D:\\Dubbing\\pmh_audio_vi.wav'
-  ); // Giọng đọc AI
+  const [mixVoicePath, setMixVoicePath] = useState('D:\\Dubbing\\audio_vi.wav'); // Giọng đọc AI
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
   >('idle');
