@@ -1,24 +1,24 @@
 'use client';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/app/lib/apiClient';
 
 const DubbingPage: React.FC = () => {
-  // --- STATE CHO WHISPER TOOL ---
-  const [inputPath, setInputPath] = useState('D:\\Dubbing\\vocals.wav');
+  // --- STATE CẤU HÌNH CHUNG ---
+  const [baseDir, setBaseDir] = useState('D:\\Dubbing');
 
-  // --- STATE CHO MAKE AUDIO TOOL ---
-  const [makeAudioPath, setMakeAudioPath] = useState(
-    'D:\\Dubbing\\vocals_vi.srt'
-  );
+  // --- STATE CHO WHISPER TOOL (Chỉ tên file) ---
+  const [inputFilename, setInputFilename] = useState('vocals.wav');
 
-  // --- STATE CHO MERGE VIDEO TOOL (MỚI) ---
-  const [mixVideoPath, setMixVideoPath] = useState('D:\\Dubbing\\video_cn.mp4'); // Video gốc (hình)
-  const [mixInstrumentalPath, setMixInstrumentalPath] = useState(
-    'D:\\Dubbing\\instrumental.wav'
-  ); // Nhạc nền
-  const [mixVoicePath, setMixVoicePath] = useState('D:\\Dubbing\\audio_vi.wav'); // Giọng đọc AI
+  // --- STATE CHO MAKE AUDIO TOOL (Chỉ tên file) ---
+  const [makeAudioFilename, setMakeAudioFilename] = useState('vocals_vi.srt');
 
-  // --- STATE CẤU HÌNH MIX (MỚI) ---
+  // --- STATE CHO MERGE VIDEO TOOL (Chỉ tên file) ---
+  const [mixVideoFilename, setMixVideoFilename] = useState('video_cn.mp4');
+  const [mixInstrumentalFilename, setMixInstrumentalFilename] =
+    useState('instrumental.wav');
+  const [mixVoiceFilename, setMixVoiceFilename] = useState('audio_vi.wav');
+
+  // --- STATE CẤU HÌNH MIX ---
   const [musicVolume, setMusicVolume] = useState<number>(0.4);
   const [voiceVolume, setVoiceVolume] = useState<number>(3.0);
   const [duckingRatio, setDuckingRatio] = useState<number>(5.0);
@@ -30,52 +30,69 @@ const DubbingPage: React.FC = () => {
   >('idle');
   const [message, setMessage] = useState('');
 
+  // --- HELPER: GHÉP ĐƯỜNG DẪN ---
+  const getFullPath = (filename: string) => {
+    // Xử lý để đảm bảo có dấu \ ở giữa
+    const cleanBase = baseDir.endsWith('\\') ? baseDir : `${baseDir}\\`;
+    // Loại bỏ dấu \ ở đầu filename nếu lỡ tay nhập
+    const cleanFile = filename.startsWith('\\')
+      ? filename.substring(1)
+      : filename;
+    return `${cleanBase}${cleanFile}`;
+  };
+
+  // --- HANDLERS ---
   const handleProcessWhisper = async () => {
-    if (inputPath.trim()) {
+    if (baseDir.trim() && inputFilename.trim()) {
+      const fullPath = getFullPath(inputFilename.trim());
       try {
-        // Gọi API Java (Spring Boot)
-        const response = await api.post(
+        await api.post(
           '/api/dubbing/vi/dubbing-whisper',
-          { inputPath: inputPath.trim() },
+          { inputPath: fullPath },
           { retryEnabled: false }
         );
       } catch (error: unknown) {}
+    } else {
+      alert('Vui lòng nhập thư mục gốc và tên file!');
     }
   };
 
   const handleProcessMakeAudio = async () => {
-    if (makeAudioPath.trim()) {
+    if (baseDir.trim() && makeAudioFilename.trim()) {
+      const fullPath = getFullPath(makeAudioFilename.trim());
       try {
-        // Gọi API Java (Spring Boot)
-        const response = await api.post(
+        await api.post(
           '/api/dubbing/vi/generate-dubbing-audio',
-          { inputPath: makeAudioPath.trim() },
+          { inputPath: fullPath },
           { retryEnabled: false }
         );
       } catch (error: unknown) {}
+    } else {
+      alert('Vui lòng nhập thư mục gốc và tên file!');
     }
   };
-  const handleProcessMergeVideo = async () => {
-    console.log('mixVideoPath:', mixVideoPath);
-    console.log('mixInstrumentalPath:', mixInstrumentalPath);
-    console.log('mixVoicePath:', mixVoicePath);
 
+  const handleProcessMergeVideo = async () => {
     if (
-      !mixVideoPath.trim() ||
-      !mixInstrumentalPath.trim() ||
-      !mixVoicePath.trim()
+      !baseDir.trim() ||
+      !mixVideoFilename.trim() ||
+      !mixInstrumentalFilename.trim() ||
+      !mixVoiceFilename.trim()
     ) {
-      alert('Vui lòng nhập đủ 3 đường dẫn: Video, Nhạc nền, và Giọng đọc!');
+      alert('Vui lòng nhập đầy đủ thư mục gốc và 3 tên file!');
       return;
     }
+
+    setStatus('loading');
+    setMessage('Đang xử lý...');
+
     try {
-      // Gọi API Java (Spring Boot)
       const response = await api.post(
         '/api/dubbing/vi/mix-video',
         {
-          videoInput: mixVideoPath.trim(),
-          instrumental: mixInstrumentalPath.trim(),
-          voiceDub: mixVoicePath.trim(),
+          videoInput: getFullPath(mixVideoFilename.trim()),
+          instrumental: getFullPath(mixInstrumentalFilename.trim()),
+          voiceDub: getFullPath(mixVoiceFilename.trim()),
           musicVolume,
           voiceVolume,
           duckingRatio,
@@ -84,12 +101,38 @@ const DubbingPage: React.FC = () => {
         },
         { retryEnabled: false }
       );
-    } catch (error: unknown) {}
+      setStatus('success');
+      setMessage('Xử lý thành công!');
+    } catch (error: unknown) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+    }
   };
+
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6">
-      {/* Tăng chiều rộng max-w-lg lên max-w-5xl để chứa 2 cột */}
       <div className="bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-5xl border border-slate-700">
+        {/* ================================================================= */}
+        {/* GLOBAL CONFIG: BASE DIRECTORY                                     */}
+        {/* ================================================================= */}
+        <div className="mb-8 bg-slate-900/80 p-4 rounded-xl border border-blue-500/30 shadow-lg shadow-blue-500/10">
+          <label className="block text-sm font-bold text-blue-400 mb-2 uppercase tracking-wider">
+            📁 Thư mục gốc (Base Directory)
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={baseDir}
+              onChange={(e) => setBaseDir(e.target.value)}
+              placeholder="Ví dụ: D:\Dubbing"
+              className="flex-1 p-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-blue-500 outline-none text-slate-200 font-mono text-lg"
+            />
+          </div>
+          <p className="text-xs text-slate-500 mt-2 italic">
+            * Các công cụ bên dưới sẽ tự động nối tên file vào thư mục này.
+          </p>
+        </div>
+
         {/* ================================================================= */}
         {/* HÀNG 1: WHISPER (TRÁI) - MAKE AUDIO (PHẢI)                        */}
         {/* ================================================================= */}
@@ -100,13 +143,18 @@ const DubbingPage: React.FC = () => {
               1. Whisper Tool (Wav to Srt)
             </h1>
             <div className="space-y-3">
-              <input
-                type="text"
-                value={inputPath}
-                onChange={(e) => setInputPath(e.target.value)}
-                placeholder="Input: D:\Dubbing\vocals.wav"
-                className="w-full p-3 rounded-lg bg-slate-900 border border-slate-600 focus:border-cyan-500 outline-none text-slate-200"
-              />
+              <div className="flex items-center bg-slate-900 rounded-lg border border-slate-600 focus-within:border-cyan-500 overflow-hidden">
+                <span className="pl-3 text-slate-500 text-sm select-none shrink-0 max-w-[100px] truncate">
+                  {baseDir}\
+                </span>
+                <input
+                  type="text"
+                  value={inputFilename}
+                  onChange={(e) => setInputFilename(e.target.value)}
+                  placeholder="vocals.wav"
+                  className="w-full p-3 bg-transparent outline-none text-slate-200"
+                />
+              </div>
               <button
                 onClick={handleProcessWhisper}
                 disabled={status === 'loading'}
@@ -123,13 +171,18 @@ const DubbingPage: React.FC = () => {
               2. Make Audio Tool (Srt to Wav)
             </h1>
             <div className="space-y-3">
-              <input
-                type="text"
-                value={makeAudioPath}
-                onChange={(e) => setMakeAudioPath(e.target.value)}
-                placeholder="Input: D:\Dubbing\vocals_vi.srt"
-                className="w-full p-3 rounded-lg bg-slate-900 border border-slate-600 focus:border-cyan-500 outline-none text-slate-200"
-              />
+              <div className="flex items-center bg-slate-900 rounded-lg border border-slate-600 focus-within:border-cyan-500 overflow-hidden">
+                <span className="pl-3 text-slate-500 text-sm select-none shrink-0 max-w-[100px] truncate">
+                  {baseDir}\
+                </span>
+                <input
+                  type="text"
+                  value={makeAudioFilename}
+                  onChange={(e) => setMakeAudioFilename(e.target.value)}
+                  placeholder="vocals_vi.srt"
+                  className="w-full p-3 bg-transparent outline-none text-slate-200"
+                />
+              </div>
               <button
                 onClick={handleProcessMakeAudio}
                 disabled={status === 'loading'}
@@ -153,41 +206,56 @@ const DubbingPage: React.FC = () => {
             {/* CỘT TRÁI: INPUT FILES */}
             <div className="space-y-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
               <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">
-                Input Files
+                Input Files (Tên file)
               </h3>
 
               <div>
                 <label className="text-xs text-slate-400 ml-1">Video Gốc</label>
-                <input
-                  type="text"
-                  value={mixVideoPath}
-                  onChange={(e) => setMixVideoPath(e.target.value)}
-                  className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-purple-500 outline-none"
-                />
+                <div className="flex items-center bg-slate-800 rounded border border-slate-600 focus-within:border-purple-500">
+                  <span className="pl-2 text-slate-500 text-xs select-none max-w-[80px] truncate">
+                    {baseDir}\
+                  </span>
+                  <input
+                    type="text"
+                    value={mixVideoFilename}
+                    onChange={(e) => setMixVideoFilename(e.target.value)}
+                    className="w-full p-2 bg-transparent outline-none text-sm"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="text-xs text-slate-400 ml-1">Nhạc Nền</label>
-                <input
-                  type="text"
-                  value={mixInstrumentalPath}
-                  onChange={(e) => setMixInstrumentalPath(e.target.value)}
-                  className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-purple-500 outline-none"
-                />
+                <div className="flex items-center bg-slate-800 rounded border border-slate-600 focus-within:border-purple-500">
+                  <span className="pl-2 text-slate-500 text-xs select-none max-w-[80px] truncate">
+                    {baseDir}\
+                  </span>
+                  <input
+                    type="text"
+                    value={mixInstrumentalFilename}
+                    onChange={(e) => setMixInstrumentalFilename(e.target.value)}
+                    className="w-full p-2 bg-transparent outline-none text-sm"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="text-xs text-slate-400 ml-1">Giọng Đọc</label>
-                <input
-                  type="text"
-                  value={mixVoicePath}
-                  onChange={(e) => setMixVoicePath(e.target.value)}
-                  className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-purple-500 outline-none"
-                />
+                <div className="flex items-center bg-slate-800 rounded border border-slate-600 focus-within:border-purple-500">
+                  <span className="pl-2 text-slate-500 text-xs select-none max-w-[80px] truncate">
+                    {baseDir}\
+                  </span>
+                  <input
+                    type="text"
+                    value={mixVoiceFilename}
+                    onChange={(e) => setMixVoiceFilename(e.target.value)}
+                    className="w-full p-2 bg-transparent outline-none text-sm"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* CỘT PHẢI: CẤU HÌNH MIX */}
+            {/* CỘT PHẢI: CẤU HÌNH MIX (Giữ nguyên) */}
             <div className="space-y-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
               <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Cấu hình Mix Âm Thanh
@@ -257,7 +325,7 @@ const DubbingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* NÚT SUBMIT CHO CẢ 2 CỘT */}
+          {/* NÚT SUBMIT */}
           <div className="mt-6">
             <button
               onClick={handleProcessMergeVideo}
@@ -289,4 +357,5 @@ const DubbingPage: React.FC = () => {
     </div>
   );
 };
+
 export default DubbingPage;
