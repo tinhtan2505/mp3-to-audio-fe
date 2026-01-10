@@ -19,11 +19,17 @@ const DubbingPage: React.FC = () => {
   const [mixVoiceFilename, setMixVoiceFilename] = useState('audio_vi.wav');
 
   // --- STATE CẤU HÌNH MIX ---
-  const [musicVolume, setMusicVolume] = useState<number>(0.4);
-  const [voiceVolume, setVoiceVolume] = useState<number>(3.0);
-  const [duckingRatio, setDuckingRatio] = useState<number>(5.0);
+  const [musicVolume, setMusicVolume] = useState<number>(0.3);
+  const [voiceVolume, setVoiceVolume] = useState<number>(3.5);
+  const [duckingRatio, setDuckingRatio] = useState<number>(7.0);
   const [attackTime, setAttackTime] = useState<number>(50);
   const [releaseTime, setReleaseTime] = useState<number>(300);
+  // --- STATE CẤU HÌNH XÓA LOGO (MỚI) ---
+  const [removeLogo, setRemoveLogo] = useState<boolean>(false);
+  const [logoX, setLogoX] = useState<number>(20);
+  const [logoY, setLogoY] = useState<number>(30);
+  const [logoW, setLogoW] = useState<number>(250);
+  const [logoH, setLogoH] = useState<number>(40);
 
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
@@ -98,6 +104,11 @@ const DubbingPage: React.FC = () => {
           duckingRatio,
           attackTime,
           releaseTime,
+          removeLogo,
+          logoX,
+          logoY,
+          logoW,
+          logoH,
         },
         { retryEnabled: false }
       );
@@ -204,128 +215,183 @@ const DubbingPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* CỘT TRÁI: INPUT FILES */}
-            <div className="space-y-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+            <div className="space-y-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700 h-fit">
               <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">
-                Input Files (Tên file)
+                Input Files
               </h3>
 
-              <div>
-                <label className="text-xs text-slate-400 ml-1">Video Gốc</label>
-                <div className="flex items-center bg-slate-800 rounded border border-slate-600 focus-within:border-purple-500">
-                  <span className="pl-2 text-slate-500 text-xs select-none max-w-[80px] truncate">
-                    {baseDir}\
-                  </span>
-                  <input
-                    type="text"
-                    value={mixVideoFilename}
-                    onChange={(e) => setMixVideoFilename(e.target.value)}
-                    className="w-full p-2 bg-transparent outline-none text-sm"
-                  />
+              {[
+                {
+                  label: 'Video Gốc',
+                  val: mixVideoFilename,
+                  set: setMixVideoFilename,
+                },
+                {
+                  label: 'Nhạc Nền',
+                  val: mixInstrumentalFilename,
+                  set: setMixInstrumentalFilename,
+                },
+                {
+                  label: 'Giọng Đọc',
+                  val: mixVoiceFilename,
+                  set: setMixVoiceFilename,
+                },
+              ].map((item, idx) => (
+                <div key={idx}>
+                  <label className="text-xs text-slate-400 ml-1">
+                    {item.label}
+                  </label>
+                  <div className="flex items-center bg-slate-800 rounded border border-slate-600 focus-within:border-purple-500">
+                    <span className="pl-2 text-slate-500 text-xs select-none max-w-[80px] truncate">
+                      {baseDir}\
+                    </span>
+                    <input
+                      type="text"
+                      value={item.val}
+                      onChange={(e) => item.set(e.target.value)}
+                      className="w-full p-2 bg-transparent outline-none text-sm"
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-400 ml-1">Nhạc Nền</label>
-                <div className="flex items-center bg-slate-800 rounded border border-slate-600 focus-within:border-purple-500">
-                  <span className="pl-2 text-slate-500 text-xs select-none max-w-[80px] truncate">
-                    {baseDir}\
-                  </span>
-                  <input
-                    type="text"
-                    value={mixInstrumentalFilename}
-                    onChange={(e) => setMixInstrumentalFilename(e.target.value)}
-                    className="w-full p-2 bg-transparent outline-none text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-400 ml-1">Giọng Đọc</label>
-                <div className="flex items-center bg-slate-800 rounded border border-slate-600 focus-within:border-purple-500">
-                  <span className="pl-2 text-slate-500 text-xs select-none max-w-[80px] truncate">
-                    {baseDir}\
-                  </span>
-                  <input
-                    type="text"
-                    value={mixVoiceFilename}
-                    onChange={(e) => setMixVoiceFilename(e.target.value)}
-                    className="w-full p-2 bg-transparent outline-none text-sm"
-                  />
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* CỘT PHẢI: CẤU HÌNH MIX (Giữ nguyên) */}
-            <div className="space-y-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-              <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">
-                Cấu hình Mix Âm Thanh
-              </h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Music Volume */}
-                <div>
-                  <label className="text-xs text-slate-400">Music Vol</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={musicVolume}
-                    onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
-                    className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
-                  />
+            {/* CỘT PHẢI: CẤU HÌNH (AUDIO + LOGO) */}
+            <div className="space-y-4">
+              {/* 1. AUDIO CONFIG */}
+              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">
+                  Mix Âm Thanh
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-400">Music Vol</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={musicVolume}
+                      onChange={(e) =>
+                        setMusicVolume(parseFloat(e.target.value))
+                      }
+                      className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400">Voice Vol</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={voiceVolume}
+                      onChange={(e) =>
+                        setVoiceVolume(parseFloat(e.target.value))
+                      }
+                      className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-slate-400">
+                      Ducking Ratio
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      value={duckingRatio}
+                      onChange={(e) =>
+                        setDuckingRatio(parseFloat(e.target.value))
+                      }
+                      className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400">
+                      Attack (ms)
+                    </label>
+                    <input
+                      type="number"
+                      value={attackTime}
+                      onChange={(e) => setAttackTime(parseInt(e.target.value))}
+                      className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400">
+                      Release (ms)
+                    </label>
+                    <input
+                      type="number"
+                      value={releaseTime}
+                      onChange={(e) => setReleaseTime(parseInt(e.target.value))}
+                      className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
+                    />
+                  </div>
                 </div>
+              </div>
 
-                {/* Voice Volume */}
-                <div>
-                  <label className="text-xs text-slate-400">Voice Vol</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={voiceVolume}
-                    onChange={(e) => setVoiceVolume(parseFloat(e.target.value))}
-                    className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
-                  />
-                </div>
-
-                {/* Ducking Ratio */}
-                <div className="col-span-2">
-                  <label className="text-xs text-slate-400">
-                    Ducking Ratio (Nén nhạc)
+              {/* 2. LOGO REMOVAL CONFIG (🔥 MỚI) */}
+              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+                    Xóa Logo
+                  </h3>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={removeLogo}
+                      onChange={(e) => setRemoveLogo(e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                   </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    value={duckingRatio}
-                    onChange={(e) =>
-                      setDuckingRatio(parseFloat(e.target.value))
-                    }
-                    className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
-                  />
                 </div>
 
-                {/* Attack / Release */}
-                <div>
-                  <label className="text-xs text-slate-400">Attack (ms)</label>
-                  <input
-                    type="number"
-                    value={attackTime}
-                    onChange={(e) => setAttackTime(parseInt(e.target.value))}
-                    className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-400">Release (ms)</label>
-                  <input
-                    type="number"
-                    value={releaseTime}
-                    onChange={(e) => setReleaseTime(parseInt(e.target.value))}
-                    className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
-                  />
-                </div>
+                {/* Các ô input chỉ hiện khi bật Toggle */}
+                {removeLogo && (
+                  <div className="grid grid-cols-4 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div>
+                      <label className="text-xs text-slate-400">X</label>
+                      <input
+                        type="number"
+                        value={logoX}
+                        onChange={(e) => setLogoX(parseInt(e.target.value))}
+                        className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400">Y</label>
+                      <input
+                        type="number"
+                        value={logoY}
+                        onChange={(e) => setLogoY(parseInt(e.target.value))}
+                        className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400">Width</label>
+                      <input
+                        type="number"
+                        value={logoW}
+                        onChange={(e) => setLogoW(parseInt(e.target.value))}
+                        className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400">Height</label>
+                      <input
+                        type="number"
+                        value={logoH}
+                        onChange={(e) => setLogoH(parseInt(e.target.value))}
+                        className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+                <p className="text-[10px] text-slate-500 mt-2 italic">
+                  * Bật tùy chọn này sẽ render lại video (tốn thời gian hơn).
+                </p>
               </div>
             </div>
           </div>
 
-          {/* NÚT SUBMIT */}
           <div className="mt-6">
             <button
               onClick={handleProcessMergeVideo}
