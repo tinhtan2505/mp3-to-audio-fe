@@ -8,6 +8,7 @@ const DubbingPage: React.FC = () => {
 
   // --- STATE CHO WHISPER TOOL (Chỉ tên file) ---
   const [inputFilename, setInputFilename] = useState('vocals.wav');
+  const [enableDiarization, setEnableDiarization] = useState<boolean>(false);
 
   // --- STATE CHO MAKE AUDIO TOOL (Chỉ tên file) ---
   const [makeAudioFilename, setMakeAudioFilename] = useState('vocals_vi.srt');
@@ -15,11 +16,13 @@ const DubbingPage: React.FC = () => {
   // --- STATE CHO MERGE VIDEO TOOL (Chỉ tên file) ---
   const [mixVideoFilename, setMixVideoFilename] = useState('video_cn.mp4');
   const [mixInstrumentalFilename, setMixInstrumentalFilename] =
-    useState('instrumental.wav');
-  const [mixVoiceFilename, setMixVoiceFilename] = useState('audio_vi.wav');
+    useState('vocals.wav');
+  const [mixVoiceFilename, setMixVoiceFilename] = useState(
+    'vocals_vi_audio.wav'
+  );
 
   // --- STATE CẤU HÌNH MIX ---
-  const [musicVolume, setMusicVolume] = useState<number>(0.3);
+  const [musicVolume, setMusicVolume] = useState<number>(0.1);
   const [voiceVolume, setVoiceVolume] = useState<number>(3.5);
   const [duckingRatio, setDuckingRatio] = useState<number>(7.0);
   const [attackTime, setAttackTime] = useState<number>(50);
@@ -54,7 +57,7 @@ const DubbingPage: React.FC = () => {
       try {
         await api.post(
           '/api/dubbing/vi/dubbing-whisper',
-          { inputPath: fullPath },
+          { inputPath: fullPath, enableDiarization: enableDiarization },
           { retryEnabled: false }
         );
       } catch (error: unknown) {}
@@ -165,6 +168,20 @@ const DubbingPage: React.FC = () => {
                   placeholder="vocals.wav"
                   className="w-full p-3 bg-transparent outline-none text-slate-200"
                 />
+              </div>
+              <div className="flex items-center gap-2 px-1">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={enableDiarization}
+                    onChange={(e) => setEnableDiarization(e.target.checked)}
+                  />
+                  <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                </label>
+                <span className="text-sm text-slate-300">
+                  Phân loại người nói (Diarization)
+                </span>
               </div>
               <button
                 onClick={handleProcessWhisper}
