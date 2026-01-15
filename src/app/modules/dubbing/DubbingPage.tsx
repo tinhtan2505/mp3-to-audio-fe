@@ -10,6 +10,9 @@ const DubbingPage: React.FC = () => {
   const [inputFilename, setInputFilename] = useState('vocals.wav');
   const [enableDiarization, setEnableDiarization] = useState<boolean>(false);
 
+  // --- STATE CHO TRANSLATE TOOL (MỚI) ---
+  const [transInputFilename, setTransInputFilename] = useState('vocals.srt');
+
   // --- STATE CHO MAKE AUDIO TOOL (Chỉ tên file) ---
   const [makeAudioFilename, setMakeAudioFilename] = useState('vocals_vi.srt');
 
@@ -61,6 +64,28 @@ const DubbingPage: React.FC = () => {
           { retryEnabled: false }
         );
       } catch (error: unknown) {}
+    } else {
+      alert('Vui lòng nhập thư mục gốc và tên file!');
+    }
+  };
+
+  const handleProcessTranslate = async () => {
+    if (baseDir.trim() && transInputFilename.trim()) {
+      const fullPath = getFullPath(transInputFilename.trim());
+      setStatus('loading');
+      setMessage('Đang dịch thuật...');
+      try {
+        await api.post(
+          '/api/dubbing/vi/translate',
+          { inputPath: fullPath },
+          { retryEnabled: false }
+        );
+        setStatus('success');
+        setMessage('Dịch thuật thành công!');
+      } catch (error: unknown) {
+        setStatus('error');
+        setMessage(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+      }
     } else {
       alert('Vui lòng nhập thư mục gốc và tên file!');
     }
@@ -189,6 +214,36 @@ const DubbingPage: React.FC = () => {
                 className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 rounded font-bold transition disabled:opacity-50"
               >
                 Chạy Whisper
+              </button>
+            </div>
+          </div>
+
+          {/* ================================================================= */}
+          {/* HÀNG MỚI: TRANSLATE TOOL (GIỮA)                                   */}
+          {/* ================================================================= */}
+          <div className="mb-8 border-b border-slate-600 pb-8">
+            <h1 className="text-xl font-bold text-green-400 mb-4">
+              1.5. Translate Tool (Srt Trung to Srt Việt)
+            </h1>
+            <div className="space-y-3">
+              <div className="flex items-center bg-slate-900 rounded-lg border border-slate-600 focus-within:border-green-500 overflow-hidden">
+                <span className="pl-3 text-slate-500 text-sm select-none shrink-0 max-w-[100px] truncate">
+                  {baseDir}\
+                </span>
+                <input
+                  type="text"
+                  value={transInputFilename}
+                  onChange={(e) => setTransInputFilename(e.target.value)}
+                  placeholder="vocals.srt"
+                  className="w-full p-3 bg-transparent outline-none text-slate-200"
+                />
+              </div>
+              <button
+                onClick={handleProcessTranslate}
+                disabled={status === 'loading'}
+                className="w-full py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition disabled:opacity-50"
+              >
+                Dịch Thuật (Gemini AI)
               </button>
             </div>
           </div>
