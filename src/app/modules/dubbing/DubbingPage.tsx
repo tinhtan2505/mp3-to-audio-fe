@@ -32,10 +32,10 @@ const DubbingPage: React.FC = () => {
   const [releaseTime, setReleaseTime] = useState<number>(300);
   // --- STATE CẤU HÌNH XÓA LOGO (MỚI) ---
   const [removeLogo, setRemoveLogo] = useState<boolean>(false);
-  const [logoX, setLogoX] = useState<number>(20);
-  const [logoY, setLogoY] = useState<number>(30);
-  const [logoW, setLogoW] = useState<number>(250);
-  const [logoH, setLogoH] = useState<number>(40);
+  const [logoX, setLogoX] = useState<number>(65);
+  const [logoY, setLogoY] = useState<number>(815);
+  const [logoW, setLogoW] = useState<number>(590);
+  const [logoH, setLogoH] = useState<number>(60);
 
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
