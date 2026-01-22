@@ -2,21 +2,31 @@
 import React, { useState } from 'react';
 import { api } from '@/app/lib/apiClient';
 
+// Định nghĩa kiểu dữ liệu trả về từ API Detect
+interface DetectRegion {
+  logo_x: number;
+  logo_y: number;
+  logo_w: number;
+  logo_h: number;
+  confidence: number;
+  sample_text: string;
+}
+
 const DubbingPage: React.FC = () => {
   // --- STATE CẤU HÌNH CHUNG ---
   const [baseDir, setBaseDir] = useState('D:\\Dubbing');
 
-  // --- STATE CHO WHISPER TOOL (Chỉ tên file) ---
+  // --- STATE CHO WHISPER TOOL ---
   const [inputFilename, setInputFilename] = useState('vocals.wav');
   const [enableDiarization, setEnableDiarization] = useState<boolean>(false);
 
-  // --- STATE CHO TRANSLATE TOOL (MỚI) ---
+  // --- STATE CHO TRANSLATE TOOL ---
   const [transInputFilename, setTransInputFilename] = useState('vocals.srt');
 
-  // --- STATE CHO MAKE AUDIO TOOL (Chỉ tên file) ---
+  // --- STATE CHO MAKE AUDIO TOOL ---
   const [makeAudioFilename, setMakeAudioFilename] = useState('vocals_vi.srt');
 
-  // --- STATE CHO MERGE VIDEO TOOL (Chỉ tên file) ---
+  // --- STATE CHO MERGE VIDEO TOOL ---
   const [mixVideoFilename, setMixVideoFilename] = useState('video_cn.mp4');
   const [mixInstrumentalFilename, setMixInstrumentalFilename] =
     useState('vocals.wav');
@@ -30,12 +40,17 @@ const DubbingPage: React.FC = () => {
   const [duckingRatio, setDuckingRatio] = useState<number>(7.0);
   const [attackTime, setAttackTime] = useState<number>(50);
   const [releaseTime, setReleaseTime] = useState<number>(300);
-  // --- STATE CẤU HÌNH XÓA LOGO (MỚI) ---
+
+  // --- STATE CẤU HÌNH XÓA LOGO ---
   const [removeLogo, setRemoveLogo] = useState<boolean>(false);
   const [logoX, setLogoX] = useState<number>(65);
   const [logoY, setLogoY] = useState<number>(815);
   const [logoW, setLogoW] = useState<number>(590);
   const [logoH, setLogoH] = useState<number>(60);
+
+  // 🔥 STATE MỚI CHO DETECT LOGO
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [detectSkipTop, setDetectSkipTop] = useState(true); // Bỏ qua 2/3 trên
 
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
@@ -44,9 +59,7 @@ const DubbingPage: React.FC = () => {
 
   // --- HELPER: GHÉP ĐƯỜNG DẪN ---
   const getFullPath = (filename: string) => {
-    // Xử lý để đảm bảo có dấu \ ở giữa
     const cleanBase = baseDir.endsWith('\\') ? baseDir : `${baseDir}\\`;
-    // Loại bỏ dấu \ ở đầu filename nếu lỡ tay nhập
     const cleanFile = filename.startsWith('\\')
       ? filename.substring(1)
       : filename;
@@ -106,6 +119,52 @@ const DubbingPage: React.FC = () => {
     }
   };
 
+  // 🔥 HANDLER MỚI: AUTO DETECT LOGO
+  const handleAutoDetect = async () => {
+    if (!baseDir.trim() || !mixVideoFilename.trim()) {
+      alert('Vui lòng nhập đường dẫn Video Gốc trước để quét!');
+      return;
+    }
+
+    setIsDetecting(true);
+    setMessage('Đang quét video để tìm logo/subtitles...');
+
+    try {
+      const fullPath = getFullPath(mixVideoFilename.trim());
+
+      const response = await api.post('/api/dubbing/vi/detect-text-regions', {
+        videoPath: fullPath,
+        skipTopTwoThirds: detectSkipTop,
+      });
+
+      // Lấy data từ response (cấu trúc Java trả về CustomResponse.data là map của Python)
+      // const resultData = response.data.data;
+
+      // if (resultData && resultData.regions && resultData.regions.length > 0) {
+      //   // Lấy vùng đầu tiên tìm được (thường là vùng quan trọng nhất sau khi merge)
+      //   const bestRegion: DetectRegion = resultData.regions[0];
+
+      //   setLogoX(bestRegion.logo_x);
+      //   setLogoY(bestRegion.logo_y);
+      //   setLogoW(bestRegion.logo_w);
+      //   setLogoH(bestRegion.logo_h);
+
+      //   setStatus('success');
+      //   setMessage(`✅ Tìm thấy ${resultData.regions.length} vùng. Đã điền thông số vùng: ${bestRegion.sample_text || 'Unknown'}`);
+      // } else {
+      //   setStatus('error');
+      //   setMessage('⚠️ Không tìm thấy vùng text/logo nào!');
+      // }
+    } catch (error: unknown) {
+      setStatus('error');
+      setMessage(
+        error instanceof Error ? error.message : 'Lỗi khi detect logo'
+      );
+    } finally {
+      setIsDetecting(false);
+    }
+  };
+
   const handleProcessMergeVideo = async () => {
     if (
       !baseDir.trim() ||
@@ -121,7 +180,7 @@ const DubbingPage: React.FC = () => {
     setMessage('Đang xử lý...');
 
     try {
-      const response = await api.post(
+      await api.post(
         '/api/dubbing/vi/mix-video',
         {
           videoInput: getFullPath(mixVideoFilename.trim()),
@@ -151,9 +210,7 @@ const DubbingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6">
       <div className="bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-5xl border border-slate-700">
-        {/* ================================================================= */}
-        {/* GLOBAL CONFIG: BASE DIRECTORY                                     */}
-        {/* ================================================================= */}
+        {/* GLOBAL CONFIG */}
         <div className="mb-8 bg-slate-900/80 p-4 rounded-xl border border-blue-500/30 shadow-lg shadow-blue-500/10">
           <label className="block text-sm font-bold text-blue-400 mb-2 uppercase tracking-wider">
             📁 Thư mục gốc (Base Directory)
@@ -172,9 +229,7 @@ const DubbingPage: React.FC = () => {
           </p>
         </div>
 
-        {/* ================================================================= */}
-        {/* HÀNG 1: WHISPER (TRÁI) - MAKE AUDIO (PHẢI)                        */}
-        {/* ================================================================= */}
+        {/* HÀNG 1: WHISPER & TRANSLATE & MAKE AUDIO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-b border-slate-600 pb-8">
           {/* CỘT TRÁI: WHISPER */}
           <div className="flex flex-col gap-4">
@@ -216,35 +271,33 @@ const DubbingPage: React.FC = () => {
                 Chạy Whisper
               </button>
             </div>
-          </div>
 
-          {/* ================================================================= */}
-          {/* HÀNG MỚI: TRANSLATE TOOL (GIỮA)                                   */}
-          {/* ================================================================= */}
-          <div className="mb-8 border-b border-slate-600 pb-8">
-            <h1 className="text-xl font-bold text-green-400 mb-4">
-              1.5. Translate Tool (Srt Trung to Srt Việt)
-            </h1>
-            <div className="space-y-3">
-              <div className="flex items-center bg-slate-900 rounded-lg border border-slate-600 focus-within:border-green-500 overflow-hidden">
-                <span className="pl-3 text-slate-500 text-sm select-none shrink-0 max-w-[100px] truncate">
-                  {baseDir}\
-                </span>
-                <input
-                  type="text"
-                  value={transInputFilename}
-                  onChange={(e) => setTransInputFilename(e.target.value)}
-                  placeholder="vocals.srt"
-                  className="w-full p-3 bg-transparent outline-none text-slate-200"
-                />
+            {/* TRANSLATE TOOL */}
+            <div className="mt-8">
+              <h1 className="text-xl font-bold text-green-400 mb-4">
+                1.5. Translate Tool (Srt Trung to Srt Việt)
+              </h1>
+              <div className="space-y-3">
+                <div className="flex items-center bg-slate-900 rounded-lg border border-slate-600 focus-within:border-green-500 overflow-hidden">
+                  <span className="pl-3 text-slate-500 text-sm select-none shrink-0 max-w-[100px] truncate">
+                    {baseDir}\
+                  </span>
+                  <input
+                    type="text"
+                    value={transInputFilename}
+                    onChange={(e) => setTransInputFilename(e.target.value)}
+                    placeholder="vocals.srt"
+                    className="w-full p-3 bg-transparent outline-none text-slate-200"
+                  />
+                </div>
+                <button
+                  onClick={handleProcessTranslate}
+                  disabled={status === 'loading'}
+                  className="w-full py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition disabled:opacity-50"
+                >
+                  Dịch Thuật (Gemini AI)
+                </button>
               </div>
-              <button
-                onClick={handleProcessTranslate}
-                disabled={status === 'loading'}
-                className="w-full py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition disabled:opacity-50"
-              >
-                Dịch Thuật (Gemini AI)
-              </button>
             </div>
           </div>
 
@@ -277,9 +330,7 @@ const DubbingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ================================================================= */}
-        {/* HÀNG 2: MERGE VIDEO (TRÁI) - CẤU HÌNH MIX (PHẢI)                  */}
-        {/* ================================================================= */}
+        {/* HÀNG 2: MERGE VIDEO */}
         <div>
           <h1 className="text-2xl font-bold mb-4 text-cyan-400 text-center md:text-left">
             3. Merge Video Tool (Mix & Export)
@@ -291,7 +342,6 @@ const DubbingPage: React.FC = () => {
               <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Input Files
               </h3>
-
               {[
                 {
                   label: 'Video Gốc',
@@ -360,6 +410,7 @@ const DubbingPage: React.FC = () => {
                       className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-pink-500 outline-none"
                     />
                   </div>
+                  {/* ... Ducking, Attack, Release giữ nguyên ... */}
                   <div className="col-span-2">
                     <label className="text-xs text-slate-400">
                       Ducking Ratio
@@ -399,7 +450,7 @@ const DubbingPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 2. LOGO REMOVAL CONFIG (🔥 MỚI) */}
+              {/* 2. LOGO REMOVAL CONFIG (🔥 ĐÃ CẬP NHẬT) */}
               <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
@@ -416,44 +467,71 @@ const DubbingPage: React.FC = () => {
                   </label>
                 </div>
 
-                {/* Các ô input chỉ hiện khi bật Toggle */}
                 {removeLogo && (
-                  <div className="grid grid-cols-4 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div>
-                      <label className="text-xs text-slate-400">X</label>
-                      <input
-                        type="number"
-                        value={logoX}
-                        onChange={(e) => setLogoX(parseInt(e.target.value))}
-                        className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
-                      />
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    {/* 🔥 SECTION NÚT AUTO DETECT */}
+                    <div className="mb-3 p-2 bg-slate-800/50 rounded border border-slate-600/50 flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="skipTop"
+                          checked={detectSkipTop}
+                          onChange={(e) => setDetectSkipTop(e.target.checked)}
+                          className="w-4 h-4 rounded bg-slate-700 border-slate-500 text-green-500 focus:ring-green-500"
+                        />
+                        <label
+                          htmlFor="skipTop"
+                          className="text-xs text-slate-400 cursor-pointer select-none"
+                        >
+                          Bỏ qua 2/3 trên (Header/Title)
+                        </label>
+                      </div>
+                      <button
+                        onClick={handleAutoDetect}
+                        disabled={isDetecting}
+                        className="w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold uppercase rounded transition flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isDetecting ? <>Wait...</> : <>🔍 Tự động tìm Logo</>}
+                      </button>
                     </div>
-                    <div>
-                      <label className="text-xs text-slate-400">Y</label>
-                      <input
-                        type="number"
-                        value={logoY}
-                        onChange={(e) => setLogoY(parseInt(e.target.value))}
-                        className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-400">Width</label>
-                      <input
-                        type="number"
-                        value={logoW}
-                        onChange={(e) => setLogoW(parseInt(e.target.value))}
-                        className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-400">Height</label>
-                      <input
-                        type="number"
-                        value={logoH}
-                        onChange={(e) => setLogoH(parseInt(e.target.value))}
-                        className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
-                      />
+
+                    <div className="grid grid-cols-4 gap-2">
+                      <div>
+                        <label className="text-xs text-slate-400">X</label>
+                        <input
+                          type="number"
+                          value={logoX}
+                          onChange={(e) => setLogoX(parseInt(e.target.value))}
+                          className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-400">Y</label>
+                        <input
+                          type="number"
+                          value={logoY}
+                          onChange={(e) => setLogoY(parseInt(e.target.value))}
+                          className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-400">Width</label>
+                        <input
+                          type="number"
+                          value={logoW}
+                          onChange={(e) => setLogoW(parseInt(e.target.value))}
+                          className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-400">Height</label>
+                        <input
+                          type="number"
+                          value={logoH}
+                          onChange={(e) => setLogoH(parseInt(e.target.value))}
+                          className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm focus:border-green-500 outline-none"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -467,7 +545,7 @@ const DubbingPage: React.FC = () => {
           <div className="mt-6">
             <button
               onClick={handleProcessMergeVideo}
-              disabled={status === 'loading'}
+              disabled={status === 'loading' || isDetecting}
               className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl font-bold text-lg transition disabled:opacity-50 shadow-lg shadow-purple-500/30 uppercase tracking-widest"
             >
               {status === 'loading'
@@ -484,8 +562,8 @@ const DubbingPage: React.FC = () => {
               status === 'success'
                 ? 'bg-green-900/20 border-green-500/50 text-green-400'
                 : status === 'error'
-                ? 'bg-red-900/20 border-red-500/50 text-red-400'
-                : 'bg-slate-700/50 border-slate-600 text-slate-300'
+                  ? 'bg-red-900/20 border-red-500/50 text-red-400'
+                  : 'bg-slate-700/50 border-slate-600 text-slate-300'
             }`}
           >
             {message}
