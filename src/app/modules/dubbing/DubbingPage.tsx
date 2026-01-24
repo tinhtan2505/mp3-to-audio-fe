@@ -47,6 +47,7 @@ const DubbingPage: React.FC = () => {
   const [logoY, setLogoY] = useState<number>(815);
   const [logoW, setLogoW] = useState<number>(590);
   const [logoH, setLogoH] = useState<number>(60);
+  const [isCrop, setIsCrop] = useState<boolean>(false);
 
   // 🔥 STATE MỚI CHO DETECT LOGO
   const [isDetecting, setIsDetecting] = useState(false);
@@ -196,6 +197,7 @@ const DubbingPage: React.FC = () => {
           logoY,
           logoW,
           logoH,
+          crop: isCrop,
         },
         { retryEnabled: false }
       );
@@ -470,6 +472,20 @@ const DubbingPage: React.FC = () => {
                 {removeLogo && (
                   <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                     {/* 🔥 SECTION NÚT AUTO DETECT */}
+                    <div className="mb-4 flex items-center justify-between bg-slate-800/50 p-3 rounded border border-slate-600/50">
+                      <span className="text-sm text-slate-300 font-medium">
+                        Crop Video
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={isCrop}
+                          onChange={(e) => setIsCrop(e.target.checked)}
+                        />
+                        <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-600"></div>
+                      </label>
+                    </div>
                     <div className="mb-3 p-2 bg-slate-800/50 rounded border border-slate-600/50 flex flex-col gap-2">
                       <div className="flex items-center gap-2">
                         <input
