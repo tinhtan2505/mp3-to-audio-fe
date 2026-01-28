@@ -209,6 +209,58 @@ const DubbingPage: React.FC = () => {
     }
   };
 
+  // --- STATE CHO TTS TỪ SRT VI ---
+  const [viSrtFilename, setViSrtFilename] = useState('vocals_vi.srt');
+
+  // --- HANDLER ---
+  const handleTtsFromViSrt = async () => {
+    if (baseDir.trim() && viSrtFilename.trim()) {
+      const fullPath = getFullPath(viSrtFilename.trim());
+      setStatus('loading');
+      setMessage('Đang tạo hàng loạt file TTS...');
+      try {
+        const response = await api.post(
+          '/api/dubbing/vi/tts-from-srt',
+          { inputPath: fullPath },
+          { retryEnabled: false }
+        );
+        setStatus('success');
+        setMessage(`Thành công! Các file lưu tại`);
+      } catch (error: unknown) {
+        setStatus('error');
+        setMessage(error instanceof Error ? error.message : 'Lỗi khi tạo TTS');
+      }
+    } else {
+      alert('Vui lòng nhập tên file SRT tiếng Việt!');
+    }
+  };
+
+  // --- HANDLER CHO MIX BATCH ---
+  const handleMixAudioBatch = async () => {
+    if (baseDir.trim() && viSrtFilename.trim()) {
+      const fullPath = getFullPath(viSrtFilename.trim());
+      setStatus('loading');
+      setMessage('Đang hợp nhất các file MP3 thành file WAV dài...');
+      try {
+        const response = await api.post(
+          '/api/dubbing/vi/mix-audio-batch',
+          { inputPath: fullPath },
+          { retryEnabled: false }
+        );
+        setStatus('success');
+        // response.data.data.outputFile chứa đường dẫn file .wav cuối cùng
+        setMessage(`Thành công! File audio tổng`);
+      } catch (error: unknown) {
+        setStatus('error');
+        setMessage(
+          error instanceof Error ? error.message : 'Lỗi khi hợp nhất audio'
+        );
+      }
+    } else {
+      alert('Vui lòng nhập tên file SRT đã có các file MP3 tương ứng!');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6">
       <div className="bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-5xl border border-slate-700">
@@ -232,8 +284,9 @@ const DubbingPage: React.FC = () => {
         </div>
 
         {/* HÀNG 1: WHISPER & TRANSLATE & MAKE AUDIO */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-b border-slate-600 pb-8">
-          {/* CỘT TRÁI: WHISPER */}
+        {/* HÀNG 1: 1. WHISPER & 2. MAKE AUDIO */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-b border-slate-700 pb-8">
+          {/* 1. WHISPER TOOL */}
           <div className="flex flex-col gap-4">
             <h1 className="text-xl font-bold text-cyan-400">
               1. Whisper Tool (Wav to Srt)
@@ -251,7 +304,7 @@ const DubbingPage: React.FC = () => {
                   className="w-full p-3 bg-transparent outline-none text-slate-200"
                 />
               </div>
-              <div className="flex items-center gap-2 px-1">
+              {/* <div className="flex items-center gap-2 px-1">
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -262,9 +315,9 @@ const DubbingPage: React.FC = () => {
                   <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
                 </label>
                 <span className="text-sm text-slate-300">
-                  Phân loại người nói (Diarization)
+                  Phân loại người nói
                 </span>
-              </div>
+              </div> */}
               <button
                 onClick={handleProcessWhisper}
                 disabled={status === 'loading'}
@@ -273,37 +326,9 @@ const DubbingPage: React.FC = () => {
                 Chạy Whisper
               </button>
             </div>
-
-            {/* TRANSLATE TOOL */}
-            <div className="mt-8">
-              <h1 className="text-xl font-bold text-green-400 mb-4">
-                1.5. Translate Tool (Srt Trung to Srt Việt)
-              </h1>
-              <div className="space-y-3">
-                <div className="flex items-center bg-slate-900 rounded-lg border border-slate-600 focus-within:border-green-500 overflow-hidden">
-                  <span className="pl-3 text-slate-500 text-sm select-none shrink-0 max-w-[100px] truncate">
-                    {baseDir}\
-                  </span>
-                  <input
-                    type="text"
-                    value={transInputFilename}
-                    onChange={(e) => setTransInputFilename(e.target.value)}
-                    placeholder="vocals.srt"
-                    className="w-full p-3 bg-transparent outline-none text-slate-200"
-                  />
-                </div>
-                <button
-                  onClick={handleProcessTranslate}
-                  disabled={status === 'loading'}
-                  className="w-full py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition disabled:opacity-50"
-                >
-                  Dịch Thuật (Gemini AI)
-                </button>
-              </div>
-            </div>
           </div>
 
-          {/* CỘT PHẢI: MAKE AUDIO */}
+          {/* 2. MAKE AUDIO TOOL */}
           <div className="flex flex-col gap-4">
             <h1 className="text-xl font-bold text-cyan-400">
               2. Make Audio Tool (Srt to Wav)
@@ -326,8 +351,82 @@ const DubbingPage: React.FC = () => {
                 disabled={status === 'loading'}
                 className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded font-bold transition disabled:opacity-50"
               >
-                Tạo Giọng Đọc
+                Tạo Giọng Đọc (Wav)
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* HÀNG MỚI: 1.5 TRANSLATE & 2.5 BATCH TTS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-b border-slate-700 pb-8">
+          {/* 1.5 TRANSLATE TOOL */}
+          <div className="flex flex-col gap-4">
+            <h1 className="text-xl font-bold text-green-400">
+              3. Translate Tool (Trung to Việt)
+            </h1>
+            <div className="space-y-3">
+              <div className="flex items-center bg-slate-900 rounded-lg border border-slate-600 focus-within:border-green-500 overflow-hidden">
+                <span className="pl-3 text-slate-500 text-sm select-none shrink-0 max-w-[100px] truncate">
+                  {baseDir}\
+                </span>
+                <input
+                  type="text"
+                  value={transInputFilename}
+                  onChange={(e) => setTransInputFilename(e.target.value)}
+                  placeholder="vocals.srt"
+                  className="w-full p-3 bg-transparent outline-none text-slate-200"
+                />
+              </div>
+              <button
+                onClick={handleProcessTranslate}
+                disabled={status === 'loading'}
+                className="w-full py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition disabled:opacity-50"
+              >
+                Dịch Thuật (Gemini AI)
+              </button>
+            </div>
+          </div>
+
+          {/* 2.5 BATCH TTS TOOL */}
+          <div className="flex flex-col gap-4">
+            <h1 className="text-xl font-bold text-yellow-400">
+              4. Batch TTS Tool (Srt to MP3s)
+            </h1>
+            <div className="space-y-3 bg-slate-900/30 p-4 rounded-xl border border-yellow-500/20">
+              <div className="flex items-center bg-slate-900 rounded-lg border border-slate-600 focus-within:border-yellow-500 overflow-hidden">
+                <span className="pl-3 text-slate-500 text-sm select-none shrink-0 max-w-[100px] truncate">
+                  {baseDir}\
+                </span>
+                <input
+                  type="text"
+                  value={viSrtFilename}
+                  onChange={(e) => setViSrtFilename(e.target.value)}
+                  placeholder="vocals_vi.srt"
+                  className="w-full p-3 bg-transparent outline-none text-slate-200"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleTtsFromViSrt}
+                  disabled={status === 'loading'}
+                  className="py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-bold transition disabled:opacity-50 text-slate-900 text-sm"
+                >
+                  1. Tạo MP3 Hàng Loạt
+                </button>
+
+                <button
+                  onClick={handleMixAudioBatch}
+                  disabled={status === 'loading'}
+                  className="py-2 bg-orange-600 hover:bg-orange-500 rounded font-bold transition disabled:opacity-50 text-white text-sm"
+                >
+                  2. Hợp Nhất Thành File Tổng
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-500 italic mt-1">
+                * Bước 2 sẽ tự động tăng tốc các đoạn audio bị dài hơn thời gian
+                phụ đề.
+              </p>
             </div>
           </div>
         </div>
@@ -335,7 +434,7 @@ const DubbingPage: React.FC = () => {
         {/* HÀNG 2: MERGE VIDEO */}
         <div>
           <h1 className="text-2xl font-bold mb-4 text-cyan-400 text-center md:text-left">
-            3. Merge Video Tool (Mix & Export)
+            5. Merge Video Tool (Mix & Export)
           </h1>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
