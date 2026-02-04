@@ -42,7 +42,7 @@ const DubbingPage: React.FC = () => {
   const [releaseTime, setReleaseTime] = useState<number>(300);
 
   // --- STATE CẤU HÌNH XÓA LOGO ---
-  const [removeLogo, setRemoveLogo] = useState<boolean>(false);
+  const [removeLogo, setRemoveLogo] = useState<boolean>(true);
   const [logoX, setLogoX] = useState<number>(65);
   const [logoY, setLogoY] = useState<number>(815);
   const [logoW, setLogoW] = useState<number>(590);
