@@ -14,7 +14,7 @@ interface DetectRegion {
 
 const DubbingPage: React.FC = () => {
   // --- STATE CẤU HÌNH CHUNG ---
-  const [baseDir, setBaseDir] = useState('D:\\Dubbing');
+  const [baseDir, setBaseDir] = useState('D:\\Dubbing\\0');
 
   // --- STATE CHO WHISPER TOOL ---
   const [inputFilename, setInputFilename] = useState('vocals.wav');
@@ -29,7 +29,7 @@ const DubbingPage: React.FC = () => {
   // --- STATE CHO MERGE VIDEO TOOL ---
   const [mixVideoFilename, setMixVideoFilename] = useState('video_cn.mp4');
   const [mixInstrumentalFilename, setMixInstrumentalFilename] =
-    useState('vocals.wav');
+    useState('video_cn.mp4');
   const [mixVoiceFilename, setMixVoiceFilename] = useState(
     'vocals_vi_audio.wav'
   );
