@@ -1,6 +1,6 @@
-'use client';
-import React, { useState } from 'react';
-import { api } from '@/app/lib/apiClient';
+"use client";
+import React, { useState } from "react";
+import { api } from "@/app/lib/apiClient";
 
 // Định nghĩa kiểu dữ liệu trả về từ API Detect
 interface DetectRegion {
@@ -14,24 +14,24 @@ interface DetectRegion {
 
 const DubbingPage: React.FC = () => {
   // --- STATE CẤU HÌNH CHUNG ---
-  const [baseDir, setBaseDir] = useState('D:\\Dubbing\\0');
+  const [baseDir, setBaseDir] = useState("D:\\Dubbing\\0");
 
   // --- STATE CHO WHISPER TOOL ---
-  const [inputFilename, setInputFilename] = useState('vocals.wav');
+  const [inputFilename, setInputFilename] = useState("vocals.wav");
   const [enableDiarization, setEnableDiarization] = useState<boolean>(false);
 
   // --- STATE CHO TRANSLATE TOOL ---
-  const [transInputFilename, setTransInputFilename] = useState('vocals.srt');
+  const [transInputFilename, setTransInputFilename] = useState("vocals.srt");
 
   // --- STATE CHO MAKE AUDIO TOOL ---
-  const [makeAudioFilename, setMakeAudioFilename] = useState('vocals_vi.srt');
+  const [makeAudioFilename, setMakeAudioFilename] = useState("vocals_vi.srt");
 
   // --- STATE CHO MERGE VIDEO TOOL ---
-  const [mixVideoFilename, setMixVideoFilename] = useState('video_cn.mp4');
+  const [mixVideoFilename, setMixVideoFilename] = useState("video_cn.mp4");
   const [mixInstrumentalFilename, setMixInstrumentalFilename] =
-    useState('video_cn.mp4');
+    useState("video_cn.m4a");
   const [mixVoiceFilename, setMixVoiceFilename] = useState(
-    'vocals_vi_audio.wav'
+    "vocals_vi_audio.wav",
   );
 
   // --- STATE CẤU HÌNH MIX ---
@@ -54,14 +54,14 @@ const DubbingPage: React.FC = () => {
   const [detectSkipTop, setDetectSkipTop] = useState(true); // Bỏ qua 2/3 trên
 
   const [status, setStatus] = useState<
-    'idle' | 'loading' | 'success' | 'error'
-  >('idle');
-  const [message, setMessage] = useState('');
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [message, setMessage] = useState("");
 
   // --- HELPER: GHÉP ĐƯỜNG DẪN ---
   const getFullPath = (filename: string) => {
-    const cleanBase = baseDir.endsWith('\\') ? baseDir : `${baseDir}\\`;
-    const cleanFile = filename.startsWith('\\')
+    const cleanBase = baseDir.endsWith("\\") ? baseDir : `${baseDir}\\`;
+    const cleanFile = filename.startsWith("\\")
       ? filename.substring(1)
       : filename;
     return `${cleanBase}${cleanFile}`;
@@ -73,35 +73,35 @@ const DubbingPage: React.FC = () => {
       const fullPath = getFullPath(inputFilename.trim());
       try {
         await api.post(
-          '/api/dubbing/vi/dubbing-whisper',
+          "/api/dubbing/vi/dubbing-whisper",
           { inputPath: fullPath, enableDiarization: enableDiarization },
-          { retryEnabled: false }
+          { retryEnabled: false },
         );
       } catch (error: unknown) {}
     } else {
-      alert('Vui lòng nhập thư mục gốc và tên file!');
+      alert("Vui lòng nhập thư mục gốc và tên file!");
     }
   };
 
   const handleProcessTranslate = async () => {
     if (baseDir.trim() && transInputFilename.trim()) {
       const fullPath = getFullPath(transInputFilename.trim());
-      setStatus('loading');
-      setMessage('Đang dịch thuật...');
+      setStatus("loading");
+      setMessage("Đang dịch thuật...");
       try {
         await api.post(
-          '/api/dubbing/vi/translate',
+          "/api/dubbing/vi/translate",
           { inputPath: fullPath },
-          { retryEnabled: false }
+          { retryEnabled: false },
         );
-        setStatus('success');
-        setMessage('Dịch thuật thành công!');
+        setStatus("success");
+        setMessage("Dịch thuật thành công!");
       } catch (error: unknown) {
-        setStatus('error');
-        setMessage(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+        setStatus("error");
+        setMessage(error instanceof Error ? error.message : "Có lỗi xảy ra");
       }
     } else {
-      alert('Vui lòng nhập thư mục gốc và tên file!');
+      alert("Vui lòng nhập thư mục gốc và tên file!");
     }
   };
 
@@ -110,30 +110,30 @@ const DubbingPage: React.FC = () => {
       const fullPath = getFullPath(makeAudioFilename.trim());
       try {
         await api.post(
-          '/api/dubbing/vi/generate-dubbing-audio',
+          "/api/dubbing/vi/generate-dubbing-audio",
           { inputPath: fullPath },
-          { retryEnabled: false }
+          { retryEnabled: false },
         );
       } catch (error: unknown) {}
     } else {
-      alert('Vui lòng nhập thư mục gốc và tên file!');
+      alert("Vui lòng nhập thư mục gốc và tên file!");
     }
   };
 
   // 🔥 HANDLER MỚI: AUTO DETECT LOGO
   const handleAutoDetect = async () => {
     if (!baseDir.trim() || !mixVideoFilename.trim()) {
-      alert('Vui lòng nhập đường dẫn Video Gốc trước để quét!');
+      alert("Vui lòng nhập đường dẫn Video Gốc trước để quét!");
       return;
     }
 
     setIsDetecting(true);
-    setMessage('Đang quét video để tìm logo/subtitles...');
+    setMessage("Đang quét video để tìm logo/subtitles...");
 
     try {
       const fullPath = getFullPath(mixVideoFilename.trim());
 
-      const response = await api.post('/api/dubbing/vi/detect-text-regions', {
+      const response = await api.post("/api/dubbing/vi/detect-text-regions", {
         videoPath: fullPath,
         skipTopTwoThirds: detectSkipTop,
       });
@@ -157,9 +157,9 @@ const DubbingPage: React.FC = () => {
       //   setMessage('⚠️ Không tìm thấy vùng text/logo nào!');
       // }
     } catch (error: unknown) {
-      setStatus('error');
+      setStatus("error");
       setMessage(
-        error instanceof Error ? error.message : 'Lỗi khi detect logo'
+        error instanceof Error ? error.message : "Lỗi khi detect logo",
       );
     } finally {
       setIsDetecting(false);
@@ -173,16 +173,16 @@ const DubbingPage: React.FC = () => {
       !mixInstrumentalFilename.trim() ||
       !mixVoiceFilename.trim()
     ) {
-      alert('Vui lòng nhập đầy đủ thư mục gốc và 3 tên file!');
+      alert("Vui lòng nhập đầy đủ thư mục gốc và 3 tên file!");
       return;
     }
 
-    setStatus('loading');
-    setMessage('Đang xử lý...');
+    setStatus("loading");
+    setMessage("Đang xử lý...");
 
     try {
       await api.post(
-        '/api/dubbing/vi/mix-video',
+        "/api/dubbing/vi/mix-video",
         {
           videoInput: getFullPath(mixVideoFilename.trim()),
           instrumental: getFullPath(mixInstrumentalFilename.trim()),
@@ -199,39 +199,39 @@ const DubbingPage: React.FC = () => {
           logoH,
           crop: isCrop,
         },
-        { retryEnabled: false }
+        { retryEnabled: false },
       );
-      setStatus('success');
-      setMessage('Xử lý thành công!');
+      setStatus("success");
+      setMessage("Xử lý thành công!");
     } catch (error: unknown) {
-      setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Có lỗi xảy ra");
     }
   };
 
   // --- STATE CHO TTS TỪ SRT VI ---
-  const [viSrtFilename, setViSrtFilename] = useState('vocals_vi.srt');
+  const [viSrtFilename, setViSrtFilename] = useState("vocals_vi.srt");
 
   // --- HANDLER ---
   const handleTtsFromViSrt = async () => {
     if (baseDir.trim() && viSrtFilename.trim()) {
       const fullPath = getFullPath(viSrtFilename.trim());
-      setStatus('loading');
-      setMessage('Đang tạo hàng loạt file TTS...');
+      setStatus("loading");
+      setMessage("Đang tạo hàng loạt file TTS...");
       try {
         const response = await api.post(
-          '/api/dubbing/vi/tts-from-srt',
+          "/api/dubbing/vi/tts-from-srt",
           { inputPath: fullPath },
-          { retryEnabled: false }
+          { retryEnabled: false },
         );
-        setStatus('success');
+        setStatus("success");
         setMessage(`Thành công! Các file lưu tại`);
       } catch (error: unknown) {
-        setStatus('error');
-        setMessage(error instanceof Error ? error.message : 'Lỗi khi tạo TTS');
+        setStatus("error");
+        setMessage(error instanceof Error ? error.message : "Lỗi khi tạo TTS");
       }
     } else {
-      alert('Vui lòng nhập tên file SRT tiếng Việt!');
+      alert("Vui lòng nhập tên file SRT tiếng Việt!");
     }
   };
 
@@ -239,25 +239,25 @@ const DubbingPage: React.FC = () => {
   const handleMixAudioBatch = async () => {
     if (baseDir.trim() && viSrtFilename.trim()) {
       const fullPath = getFullPath(viSrtFilename.trim());
-      setStatus('loading');
-      setMessage('Đang hợp nhất các file MP3 thành file WAV dài...');
+      setStatus("loading");
+      setMessage("Đang hợp nhất các file MP3 thành file WAV dài...");
       try {
         const response = await api.post(
-          '/api/dubbing/vi/mix-audio-batch',
+          "/api/dubbing/vi/mix-audio-batch",
           { inputPath: fullPath },
-          { retryEnabled: false }
+          { retryEnabled: false },
         );
-        setStatus('success');
+        setStatus("success");
         // response.data.data.outputFile chứa đường dẫn file .wav cuối cùng
         setMessage(`Thành công! File audio tổng`);
       } catch (error: unknown) {
-        setStatus('error');
+        setStatus("error");
         setMessage(
-          error instanceof Error ? error.message : 'Lỗi khi hợp nhất audio'
+          error instanceof Error ? error.message : "Lỗi khi hợp nhất audio",
         );
       }
     } else {
-      alert('Vui lòng nhập tên file SRT đã có các file MP3 tương ứng!');
+      alert("Vui lòng nhập tên file SRT đã có các file MP3 tương ứng!");
     }
   };
 
@@ -320,7 +320,7 @@ const DubbingPage: React.FC = () => {
               </div> */}
               <button
                 onClick={handleProcessWhisper}
-                disabled={status === 'loading'}
+                disabled={status === "loading"}
                 className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 rounded font-bold transition disabled:opacity-50"
               >
                 Chạy Whisper
@@ -348,7 +348,7 @@ const DubbingPage: React.FC = () => {
               </div>
               <button
                 onClick={handleProcessMakeAudio}
-                disabled={status === 'loading'}
+                disabled={status === "loading"}
                 className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded font-bold transition disabled:opacity-50"
               >
                 Tạo Giọng Đọc (Wav)
@@ -379,7 +379,7 @@ const DubbingPage: React.FC = () => {
               </div>
               <button
                 onClick={handleProcessTranslate}
-                disabled={status === 'loading'}
+                disabled={status === "loading"}
                 className="w-full py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition disabled:opacity-50"
               >
                 Dịch Thuật (Gemini AI)
@@ -409,7 +409,7 @@ const DubbingPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={handleTtsFromViSrt}
-                  disabled={status === 'loading'}
+                  disabled={status === "loading"}
                   className="py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-bold transition disabled:opacity-50 text-slate-900 text-sm"
                 >
                   1. Tạo MP3 Hàng Loạt
@@ -417,7 +417,7 @@ const DubbingPage: React.FC = () => {
 
                 <button
                   onClick={handleMixAudioBatch}
-                  disabled={status === 'loading'}
+                  disabled={status === "loading"}
                   className="py-2 bg-orange-600 hover:bg-orange-500 rounded font-bold transition disabled:opacity-50 text-white text-sm"
                 >
                   2. Hợp Nhất Thành File Tổng
@@ -445,17 +445,17 @@ const DubbingPage: React.FC = () => {
               </h3>
               {[
                 {
-                  label: 'Video Gốc',
+                  label: "Video Gốc",
                   val: mixVideoFilename,
                   set: setMixVideoFilename,
                 },
                 {
-                  label: 'Nhạc Nền',
+                  label: "Nhạc Nền",
                   val: mixInstrumentalFilename,
                   set: setMixInstrumentalFilename,
                 },
                 {
-                  label: 'Giọng Đọc',
+                  label: "Giọng Đọc",
                   val: mixVoiceFilename,
                   set: setMixVoiceFilename,
                 },
@@ -660,12 +660,12 @@ const DubbingPage: React.FC = () => {
           <div className="mt-6">
             <button
               onClick={handleProcessMergeVideo}
-              disabled={status === 'loading' || isDetecting}
+              disabled={status === "loading" || isDetecting}
               className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl font-bold text-lg transition disabled:opacity-50 shadow-lg shadow-purple-500/30 uppercase tracking-widest"
             >
-              {status === 'loading'
-                ? 'Đang Xử Lý...'
-                : '🎵 Hòa Âm & Xuất Video 🎬'}
+              {status === "loading"
+                ? "Đang Xử Lý..."
+                : "🎵 Hòa Âm & Xuất Video 🎬"}
             </button>
           </div>
         </div>
@@ -674,11 +674,11 @@ const DubbingPage: React.FC = () => {
         {message && (
           <div
             className={`mt-6 p-4 rounded-lg border text-sm font-mono break-all ${
-              status === 'success'
-                ? 'bg-green-900/20 border-green-500/50 text-green-400'
-                : status === 'error'
-                  ? 'bg-red-900/20 border-red-500/50 text-red-400'
-                  : 'bg-slate-700/50 border-slate-600 text-slate-300'
+              status === "success"
+                ? "bg-green-900/20 border-green-500/50 text-green-400"
+                : status === "error"
+                  ? "bg-red-900/20 border-red-500/50 text-red-400"
+                  : "bg-slate-700/50 border-slate-600 text-slate-300"
             }`}
           >
             {message}
