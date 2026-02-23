@@ -34,6 +34,10 @@ const DubbingPage: React.FC = () => {
     'vocals_vi_audio.wav'
   );
 
+  const [subtitleFilename, setSubtitleFilename] = useState('vocals_vi.srt');
+  const [subtitleFontSize, setSubtitleFontSize] = useState(28);
+  const [subtitleBorderWidth, setSubtitleBorderWidth] = useState(2);
+
   // --- STATE CẤU HÌNH MIX ---
   const [musicVolume, setMusicVolume] = useState<number>(0.1);
   const [voiceVolume, setVoiceVolume] = useState<number>(3.5);
@@ -187,6 +191,11 @@ const DubbingPage: React.FC = () => {
           videoInput: getFullPath(mixVideoFilename.trim()),
           instrumental: getFullPath(mixInstrumentalFilename.trim()),
           voiceDub: getFullPath(mixVoiceFilename.trim()),
+          subtitlePath: subtitleFilename.trim()
+            ? getFullPath(subtitleFilename.trim())
+            : null,
+          subtitleFontSize,
+          subtitleBorderWidth,
           musicVolume,
           voiceVolume,
           duckingRatio,
@@ -477,6 +486,49 @@ const DubbingPage: React.FC = () => {
                   </div>
                 </div>
               ))}
+              <div>
+                <label className="text-xs text-slate-400 ml-1">
+                  Vietsub (SRT)
+                </label>
+                <div className="flex items-center bg-slate-800 rounded border border-slate-600 focus-within:border-yellow-500">
+                  <span className="pl-2 text-slate-500 text-xs select-none max-w-[80px] truncate">
+                    {baseDir}\
+                  </span>
+                  <input
+                    type="text"
+                    value={subtitleFilename}
+                    onChange={(e) => setSubtitleFilename(e.target.value)}
+                    placeholder="vocals_vi.srt"
+                    className="w-full p-2 bg-transparent outline-none text-sm"
+                  />
+                </div>
+                <div className="flex gap-2 mt-1">
+                  <div className="flex-1">
+                    <label className="text-xs text-slate-400">Font Size</label>
+                    <input
+                      type="number"
+                      value={subtitleFontSize}
+                      onChange={(e) =>
+                        setSubtitleFontSize(parseInt(e.target.value))
+                      }
+                      className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm outline-none focus:border-yellow-500"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-slate-400">
+                      Border Width
+                    </label>
+                    <input
+                      type="number"
+                      value={subtitleBorderWidth}
+                      onChange={(e) =>
+                        setSubtitleBorderWidth(parseInt(e.target.value))
+                      }
+                      className="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm outline-none focus:border-yellow-500"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* CỘT PHẢI: CẤU HÌNH (AUDIO + LOGO) */}
