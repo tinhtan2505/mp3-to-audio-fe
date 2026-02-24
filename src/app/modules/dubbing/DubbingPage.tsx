@@ -35,7 +35,7 @@ const DubbingPage: React.FC = () => {
   );
 
   const [subtitleFilename, setSubtitleFilename] = useState('vocals_vi.srt');
-  const [subtitleFontSize, setSubtitleFontSize] = useState(28);
+  const [subtitleFontSize, setSubtitleFontSize] = useState(30);
   const [subtitleBorderWidth, setSubtitleBorderWidth] = useState(2);
 
   // --- STATE CẤU HÌNH MIX ---
@@ -51,7 +51,8 @@ const DubbingPage: React.FC = () => {
   const [logoY, setLogoY] = useState<number>(1320);
   const [logoW, setLogoW] = useState<number>(800);
   const [logoH, setLogoH] = useState<number>(80);
-  const [isCrop, setIsCrop] = useState<boolean>(false);
+  const [isCrop, setIsCrop] = useState<boolean>(true);
+  const [watermarkLines, setWatermarkLines] = useState<boolean>(false);
 
   // 🔥 STATE MỚI CHO DETECT LOGO
   const [isDetecting, setIsDetecting] = useState(false);
@@ -207,6 +208,7 @@ const DubbingPage: React.FC = () => {
           logoW,
           logoH,
           crop: isCrop,
+          watermarkLines,
         },
         { retryEnabled: false }
       );
@@ -528,6 +530,26 @@ const DubbingPage: React.FC = () => {
                     />
                   </div>
                 </div>
+              </div>
+              {/* WATERMARK LINES TOGGLE */}
+              <div className="flex items-center justify-between bg-slate-800/50 p-3 rounded border border-slate-600/50 mt-2">
+                <div>
+                  <span className="text-sm text-slate-300 font-medium">
+                    Watermark Text
+                  </span>
+                  <p className="text-[10px] text-slate-500 italic">
+                    Link YT + Tên kênh dưới logo
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={watermarkLines}
+                    onChange={(e) => setWatermarkLines(e.target.checked)}
+                  />
+                  <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+                </label>
               </div>
             </div>
 
