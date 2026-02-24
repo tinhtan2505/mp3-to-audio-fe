@@ -35,7 +35,7 @@ const DubbingPage: React.FC = () => {
   );
 
   const [subtitleFilename, setSubtitleFilename] = useState('vocals_vi.srt');
-  const [subtitleFontSize, setSubtitleFontSize] = useState(30);
+  const [subtitleFontSize, setSubtitleFontSize] = useState(40);
   const [subtitleBorderWidth, setSubtitleBorderWidth] = useState(2);
 
   // --- STATE CẤU HÌNH MIX ---
@@ -79,7 +79,7 @@ const DubbingPage: React.FC = () => {
       try {
         await api.post(
           '/api/dubbing/vi/dubbing-whisper',
-          { inputPath: fullPath, enableDiarization: enableDiarization },
+          { inputPath: baseDir, enableDiarization: enableDiarization },
           { retryEnabled: false }
         );
       } catch (error: unknown) {}
