@@ -39,7 +39,7 @@ const DubbingPage: React.FC = () => {
   const [subtitleBorderWidth, setSubtitleBorderWidth] = useState(2);
 
   // --- STATE CẤU HÌNH MIX ---
-  const [musicVolume, setMusicVolume] = useState<number>(0.1);
+  const [musicVolume, setMusicVolume] = useState<number>(0.2);
   const [voiceVolume, setVoiceVolume] = useState<number>(3.5);
   const [duckingRatio, setDuckingRatio] = useState<number>(7.0);
   const [attackTime, setAttackTime] = useState<number>(50);
@@ -47,10 +47,10 @@ const DubbingPage: React.FC = () => {
 
   // --- STATE CẤU HÌNH XÓA LOGO ---
   const [removeLogo, setRemoveLogo] = useState<boolean>(true);
-  const [logoX, setLogoX] = useState<number>(120);
+  const [logoX, setLogoX] = useState<number>(60);
   const [logoY, setLogoY] = useState<number>(1320);
-  const [logoW, setLogoW] = useState<number>(800);
-  const [logoH, setLogoH] = useState<number>(80);
+  const [logoW, setLogoW] = useState<number>(960);
+  const [logoH, setLogoH] = useState<number>(90);
   const [isCrop, setIsCrop] = useState<boolean>(true);
   const [watermarkLines, setWatermarkLines] = useState<boolean>(false);
 
