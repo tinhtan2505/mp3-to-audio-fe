@@ -39,7 +39,7 @@ const DubbingPage: React.FC = () => {
   const [subtitleBorderWidth, setSubtitleBorderWidth] = useState(2);
 
   // --- STATE CẤU HÌNH MIX ---
-  const [musicVolume, setMusicVolume] = useState<number>(0.2);
+  const [musicVolume, setMusicVolume] = useState<number>(0.1);
   const [voiceVolume, setVoiceVolume] = useState<number>(3.5);
   const [duckingRatio, setDuckingRatio] = useState<number>(7.0);
   const [attackTime, setAttackTime] = useState<number>(50);
