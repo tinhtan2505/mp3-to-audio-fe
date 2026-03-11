@@ -390,7 +390,7 @@ const DubbingPage: React.FC = () => {
               </div>
               <button
                 onClick={handleProcessTranslate}
-                disabled={status === 'loading'}
+                // disabled={status === 'loading'}
                 className="w-full py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition disabled:opacity-50"
               >
                 Dịch Thuật (Gemini AI)
@@ -420,7 +420,7 @@ const DubbingPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={handleTtsFromViSrt}
-                  disabled={status === 'loading'}
+                  // disabled={status === 'loading'}
                   className="py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-bold transition disabled:opacity-50 text-slate-900 text-sm"
                 >
                   1. Tạo MP3 Hàng Loạt
@@ -428,7 +428,7 @@ const DubbingPage: React.FC = () => {
 
                 <button
                   onClick={handleMixAudioBatch}
-                  disabled={status === 'loading'}
+                  // disabled={status === 'loading'}
                   className="py-2 bg-orange-600 hover:bg-orange-500 rounded font-bold transition disabled:opacity-50 text-white text-sm"
                 >
                   2. Hợp Nhất Thành File Tổng
@@ -734,12 +734,10 @@ const DubbingPage: React.FC = () => {
           <div className="mt-6">
             <button
               onClick={handleProcessMergeVideo}
-              disabled={status === 'loading' || isDetecting}
+              // disabled={status === 'loading' || isDetecting}
               className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl font-bold text-lg transition disabled:opacity-50 shadow-lg shadow-purple-500/30 uppercase tracking-widest"
             >
-              {status === 'loading'
-                ? 'Đang Xử Lý...'
-                : '🎵 Hòa Âm & Xuất Video 🎬'}
+              🎵 Hòa Âm & Xuất Video 🎬
             </button>
           </div>
         </div>
